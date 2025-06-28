@@ -3,7 +3,7 @@ MAKEFLAGS += --warn-undefined-variables
 .ONESHELL:
 .SHELLFLAGS := -eu -o pipefail -c
 
-KERNEL := build/vmlinuz
+KERNEL_OUTPUT := build/vmlinuz
 KERNEL_DIR := kernel
 TARGET := build/VanOS.iso
 ROOTFS := build/rootfs
@@ -39,17 +39,9 @@ clean:
 		cargo clean --target $(MUSL_TARGET) --manifest-path $(USERLAND)/src/commands/$$proj/Cargo.toml; \
 	done
 
-build-kernel:
-	@echo "[Copy] Compiling Kernel..."
-	cd $(KERNEL_DIR)
-
-	make menuconfig
-	make
-	make modules_install
-	make install
-
-	@echo "[Copy] Kernel to $(KERNEL)..."
-	cp arch/x86/boot/bzImage ../$(KERNEL)
+copy-kernel:
+	@echo "[Copy] Kernel to $(KERNEL_OUTPUT)..."
+	cp $(KERNEL_DIR)/arch/x86/boot/bzImage $(KERNEL_OUTPUT)
 
 build-rootfs: $(PROJECTS) init
 	@echo "[Copy] Installing to $(ROOTFS)..."
@@ -68,7 +60,7 @@ build-initramfs:
 	@echo "[Initramfs] Creating initramfs image..."
 	cd $(ROOTFS) && find . | cpio -H newc -o | gzip > ../$(INITRAMFS)
 
-build-ext4-image: $(KERNEL)
+build-ext4-image: $(KERNEL_OUTPUT)
 	@echo "[Image] Updating ext4 image if needed..."
 	@mkdir -p $(MOUNT_DIR) $(CHECKSUM_DIR) $(ROOTFS)
 
@@ -126,7 +118,7 @@ run-qemu:
 
 run-image:
 	qemu-system-x86_64 \
-		-kernel $(KERNEL) \
+		-kernel $(KERNEL_OUTPUT) \
 		-hda $(IMAGE_FILE) \
 		-device virtio-rng-pci \
 		-append "root=/dev/sda rw console=ttyS0 loglevel=3 clocksource=tsc" \
