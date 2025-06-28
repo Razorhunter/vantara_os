@@ -126,8 +126,8 @@ run-image:
 		-cpu host \
 		-smp 2 \
 		-m 2048 \
-		-serial mon:stdio \
-		-nographic
+		-nographic \
+  		-serial mon:stdio
 
 clean-checksum:
 	rm -rf $(CHECKSUM_DIR)
