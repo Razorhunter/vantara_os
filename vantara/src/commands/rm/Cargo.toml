@@ -1,0 +1,10 @@
+[package]
+name = "rm"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hafifi"]
+description = "Vantara System OS rm module"
+license = "MIT"
+
+[dependencies]
+vantara = { path = "../../../" }

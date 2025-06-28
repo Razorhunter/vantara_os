@@ -1,0 +1,50 @@
+Here is a list of common and useful Linux commands, categorized for clarity:
+File/Directory Manipulation:
+		ls: Lists files and directories.
+		cd: Changes the current directory.
+		pwd: Prints the current working directory.
+		mkdir: Creates a new directory.
+		rmdir: Removes an empty directory.
+		rm: Removes files or directories (use with caution!).
+		cp: Copies files or directories.
+		mv: Moves or renames files or directories.
+		touch: Creates an empty file or updates the timestamp of an existing file.
+		cat: Displays the contents of a file.
+		less: or more: Displays file contents one page at a time.
+		head: Displays the first few lines of a file.
+	tail: Displays the last few lines of a file.
+	find: Searches for files and directories.
+	grep: Searches for text within files.
+		chmod: Changes file permissions.
+		chown: Changes file ownership.
+		ln: Creates links (shortcuts) to files or directories.
+	tar: Creates and extracts archive files.
+	gzip, gunzip: Compress and decompress files. 
+System Information:
+	uname: Displays system information.
+	df: Shows disk space usage.
+	du: Shows disk space usage for files and directories.
+	free: Displays memory usage.
+	top: or htop: Displays real-time system resource usage.
+	ps: Lists currently running processes.
+	kill: Terminates a process.
+	uptime: Shows how long the system has been running.
+	date: Displays the current date and time.
+	cal: Displays a calendar. 
+Networking:
+	ping: Checks network connectivity.
+	ifconfig: or ip: Displays and configures network interfaces.
+	netstat: Displays network connections.
+	ssh: Securely connects to a remote server.
+	scp: Securely copies files to or from a remote server.
+	wget: Downloads files from the internet. 
+Other Useful Commands:
+	echo: Prints text to the console.
+	alias: Creates aliases for other commands.
+	history: Displays previously used commands.
+	man: Displays the manual page for a command.
+	help: Displays help information for a command.
+	sudo: Executes a command with administrator privileges.
+	whatis: Displays a brief description of a command.
+	apropos: Searches for commands by keyword. 
+This list provides a good starting point for learning and using Linux. There are many more commands available, and exploring them can be a great way to become more proficient with the system. 

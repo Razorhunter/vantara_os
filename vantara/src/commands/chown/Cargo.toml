@@ -1,0 +1,13 @@
+[package]
+name = "chown"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hafifi"]
+description = "Vantara System OS chown module"
+license = "MIT"
+
+[dependencies]
+nix = { version = "0.30.1", features = ["user", "fs"] }
+users = "0.11"
+walkdir = "2"
+vantara = { path = "../../../" }

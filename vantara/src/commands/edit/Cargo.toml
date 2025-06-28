@@ -1,0 +1,11 @@
+[package]
+name = "edit"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hafifi"]
+description = "Vantara System OS edit module"
+license = "MIT"
+
+[dependencies]
+crossterm = "0.29.0"
+vantara = { path = "../../../" }

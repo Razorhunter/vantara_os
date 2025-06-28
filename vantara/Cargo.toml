@@ -1,0 +1,23 @@
+[package]
+name = "vantara"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib/lib.rs"
+
+[dependencies]
+glob = "0.3"
+
+[workspace]
+members = [
+    "src/init",
+    "src/commands/*",
+    "src/lib/*",
+]
+
+[profile.release]
+panic = "abort"
+lto = true
+strip = true
+codegen-units = 1

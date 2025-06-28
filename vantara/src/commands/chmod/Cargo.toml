@@ -1,0 +1,11 @@
+[package]
+name = "chmod"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hafifi"]
+description = "Vantara System OS chmod module"
+license = "MIT"
+
+[dependencies]
+walkdir = "2"
+vantara = { path = "../../../" }

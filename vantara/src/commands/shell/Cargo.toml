@@ -1,0 +1,12 @@
+[package]
+name = "shell"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hafifi"]
+description = "Vantara System OS shell module"
+license = "MIT"
+
+[dependencies]
+rustyline = "16.0.0"
+dirs = "6.0.0"
+vantara = { path = "../../../" }

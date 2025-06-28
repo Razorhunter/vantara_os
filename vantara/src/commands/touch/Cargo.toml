@@ -1,0 +1,12 @@
+[package]
+name = "touch"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hafifi"]
+description = "Vantara System OS touch module"
+license = "MIT"
+
+[dependencies]
+filetime = "0.2"
+chrono = { version = "0.4", features = ["clock", "serde"] }
+vantara = { path = "../../../" }

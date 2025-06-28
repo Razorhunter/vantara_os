@@ -1,0 +1,10 @@
+[package]
+name = "mv"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hafifi"]
+description = "Vantara System OS mv module"
+license = "MIT"
+
+[dependencies]
+vantara = { path = "../../../" }

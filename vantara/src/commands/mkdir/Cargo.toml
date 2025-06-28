@@ -1,0 +1,10 @@
+[package]
+name = "mkdir"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hafifi"]
+description = "Vantara System OS mkdir module"
+license = "MIT"
+
+[dependencies]
+vantara = { path = "../../../" }
