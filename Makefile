@@ -43,10 +43,10 @@ build-kernel:
 	@echo "[Copy] Compiling Kernel..."
 	cd $(KERNEL_DIR)
 
-	make mrproper
-	make defconfig
-
-	make -j$(nproc)
+	make menuconfig
+	make
+	make modules_install
+	make install
 
 	@echo "[Copy] Kernel to $(KERNEL)..."
 	cp arch/x86/boot/bzImage ../$(KERNEL)
