@@ -93,7 +93,7 @@ fn main() -> io::Result<()> {
 
     //Check for empty paths
     if paths.is_empty() {
-        safe_eprintln(format_args!("{}: pelase specify at least one (1) filename", package_name!()));
+        safe_eprintln(format_args!("{}: please specify at least one (1) filename", package_name!()));
         print_usage();
         exit(1);
     }
