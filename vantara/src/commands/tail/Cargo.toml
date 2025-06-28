@@ -8,3 +8,4 @@ license = "MIT"
 
 [dependencies]
 vantara = { path = "../../../" }
+ctrlc = "3.4"
