@@ -27,7 +27,7 @@ BUILD_TARGET = x86_64-unknown-linux-musl/release
 INIT_BUILD_TARGET = x86_64-naked/debug
 TARGET_JSON = target-specs/x86_64-naked.json
 
-PROJECTS := cat chmod chown cp edit less login ls mkdir mv pwd rm rmdir shell touch trash ln head tail
+PROJECTS := cat chmod chown cp edit less login ls mkdir mv pwd rm rmdir shell touch trash ln head tail find
 
 all: clean build-rootfs build-ext4-image
 
