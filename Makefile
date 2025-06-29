@@ -17,7 +17,7 @@ INIT_BUILD_TARGET := x86_64-naked/debug
 
 MOUNT_DIR := build/mnt
 IMAGE_FILE := build/vantara.ext4
-IMAGE_SIZE := 1024
+IMAGE_SIZE := 4096
 
 CHECKSUM_DIR := build/.checksums
 
