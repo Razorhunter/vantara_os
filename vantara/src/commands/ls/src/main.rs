@@ -37,7 +37,7 @@ fn main() {
                         'l' => options.long_format = true,
                         'R' => options.recursive = true,
                         _ => {
-                            safe_eprintln(format_args!("{}: unknow flag -{}", package_name!(), c));
+                            safe_eprintln(format_args!("{}: unknown flag -{}", package_name!(), c));
                             exit(1);
                         }
                     }

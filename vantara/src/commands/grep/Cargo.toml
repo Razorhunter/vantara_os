@@ -1,0 +1,12 @@
+[package]
+name = "grep"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hafifi"]
+description = "Vantara System OS grep module"
+license = "MIT"
+
+[dependencies]
+regex = "1.11.1"
+vantara = { path = "../../../" }
+walkdir = "2.5.0"

@@ -17,7 +17,7 @@ INIT_BUILD_TARGET := x86_64-naked/debug
 
 MOUNT_DIR := build/mnt
 IMAGE_FILE := build/vantara.ext4
-IMAGE_SIZE := 1024
+IMAGE_SIZE := 4096
 
 CHECKSUM_DIR := build/.checksums
 
@@ -26,8 +26,8 @@ INIT_OUT_DIR = ../$(ROOTFS)/sbin
 BUILD_TARGET = x86_64-unknown-linux-musl/release
 INIT_BUILD_TARGET = x86_64-naked/debug
 TARGET_JSON = target-specs/x86_64-naked.json
-
-PROJECTS := cat chmod chown cp edit less login ls mkdir mv pwd rm rmdir shell touch trash ln head tail find
+COMMANDS_DIR := vantara/src/commands
+PROJECTS := $(notdir $(wildcard $(COMMANDS_DIR)/*))
 
 all: clean build-rootfs build-ext4-image
 

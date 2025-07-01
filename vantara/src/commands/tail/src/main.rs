@@ -54,7 +54,7 @@ fn main() -> io::Result<()> {
             },
             _ if !arg.starts_with('-') => paths.push(arg.clone()),
             _ => {
-                safe_eprintln(format_args!("{}: unknow option '{}'", package_name!(), arg));
+                safe_eprintln(format_args!("{}: unknown option '{}'", package_name!(), arg));
                 exit(1);
             }
         }
