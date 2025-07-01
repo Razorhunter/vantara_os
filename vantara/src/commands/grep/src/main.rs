@@ -87,7 +87,7 @@ fn parse_args() -> Options {
         line_number: false,
         recursive: false,
         list_files: false,
-        color: false,
+        color: true,
     };
 
     for arg in &args {
