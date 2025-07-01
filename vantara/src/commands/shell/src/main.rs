@@ -154,10 +154,7 @@ fn main() {
                         if parts.is_empty() {
                             continue;
                         }
-                        let command = parts[0];
-                        let args = &parts[1..];
-
-                        run_command(command, &args);
+                        run_pipeline_command(input);
                     }
                 }
             }
@@ -181,6 +178,63 @@ fn run_command(cmd: &str, args: &[&str]) {
         Err(_) => {
             safe_eprintln(format_args!("Command '{}' not found", cmd));
         }
+    }
+}
+
+fn run_pipeline_command(input: &str) {
+    let commands: Vec<&str> = input.trim().split('|').map(str::trim).collect();
+
+    if commands.is_empty() {
+        return;
+    }
+
+    let mut previous_stdout = None;
+    let mut children = Vec::new();
+
+    for (i, cmd_str) in commands.iter().enumerate() {
+        let mut parts = cmd_str.split_whitespace();
+        let cmd = match parts.next() {
+            Some(c) => c,
+            None => continue,
+        };
+
+        let args: Vec<&str> = parts.collect();
+
+        let mut command = Command::new(cmd);
+        command.args(args);
+
+        if let Some(stdout) = previous_stdout.take() {
+            command.stdin(Stdio::from(stdout));
+        }
+
+        if i == commands.len() - 1 {
+            command.stdout(Stdio::inherit());
+        } else {
+            command.stdout(Stdio::piped());
+        }
+
+        match command.spawn() {
+            Ok(mut child) => {
+                // Ambil stdout dulu sebelum push child
+                let stdout = if i != commands.len() - 1 {
+                    child.stdout.take()
+                } else {
+                    None
+                };
+
+                previous_stdout = stdout;
+                children.push(child);
+            }
+            Err(_) => {
+                safe_eprintln(format_args!("Command '{}' not found", cmd));
+                return;
+            }
+        }
+
+    }
+
+    for mut child in children {
+        let _ = child.wait();
     }
 }
 
