@@ -1,0 +1,11 @@
+[package]
+name = "gunzip"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hafifi"]
+description = "Vantara System OS gunzip module"
+license = "MIT"
+
+[dependencies]
+vantara = { path = "../../../" }
+flate2 = "1.0"
