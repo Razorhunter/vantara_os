@@ -1,23 +1,23 @@
 Here is a list of common and useful Linux commands, categorized for clarity:
 File/Directory Manipulation:
-		ls: Lists files and directories.
-		cd: Changes the current directory.
-		pwd: Prints the current working directory.
-		mkdir: Creates a new directory.
-		rmdir: Removes an empty directory.
-		rm: Removes files or directories (use with caution!).
-		cp: Copies files or directories.
-		mv: Moves or renames files or directories.
-		touch: Creates an empty file or updates the timestamp of an existing file.
-		cat: Displays the contents of a file.
-		less: or more: Displays file contents one page at a time.
-		head: Displays the first few lines of a file.
+	ls: Lists files and directories.
+	cd: Changes the current directory.
+	pwd: Prints the current working directory.
+	mkdir: Creates a new directory.
+	rmdir: Removes an empty directory.
+	rm: Removes files or directories (use with caution!).
+	cp: Copies files or directories.
+	mv: Moves or renames files or directories.
+	touch: Creates an empty file or updates the timestamp of an existing file.
+	cat: Displays the contents of a file.
+	less: or more: Displays file contents one page at a time.
+	head: Displays the first few lines of a file.
 	tail: Displays the last few lines of a file.
 	find: Searches for files and directories.
 	grep: Searches for text within files.
-		chmod: Changes file permissions.
-		chown: Changes file ownership.
-		ln: Creates links (shortcuts) to files or directories.
+	chmod: Changes file permissions.
+	chown: Changes file ownership.
+	ln: Creates links (shortcuts) to files or directories.
 	tar: Creates and extracts archive files.
 	gzip, gunzip: Compress and decompress files. 
 System Information:
