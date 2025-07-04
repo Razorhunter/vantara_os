@@ -419,6 +419,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "gunzip"
+version = "0.1.0"
+dependencies = [
+ "flate2",
+ "vantara",
+]
+
+[[package]]
+name = "gzip"
+version = "0.1.0"
+dependencies = [
+ "flate2",
+ "vantara",
+]
+
+[[package]]
 name = "head"
 version = "0.1.0"
 dependencies = [
