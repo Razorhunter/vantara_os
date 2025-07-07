@@ -80,6 +80,9 @@ fn start_service(service: &mut Service) {
             service.pid = Some(pid as usize);
             write(b"[INFO] Started service: ");
             write(service.name);
+            write(b" (pid: ");
+            write_num(service.pid.unwrap_or(0));
+            write(b")");
             write(b"\n");
         }
     }
@@ -163,7 +166,6 @@ fn write_num(mut num: usize) {
     }
 
     write(&buf[i..]);
-    write(b"\n");
 }
 
 #[panic_handler]
