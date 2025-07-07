@@ -1,31 +1,91 @@
 #![no_std]
 #![no_main]
 
+mod syscall;
+
 use core::ptr;
 use core::arch::asm;
 use core::panic::PanicInfo;
 
-const SYS_MOUNT: usize = 165;
-const SYS_MKDIR: usize = 83;
-const SYS_MKNOD: usize = 133;
-const SYS_GETPID: usize = 39;
+use crate::syscall::{syscall0, syscall1, syscall2, syscall3, syscall4, syscall5, get_pid, SYS_MOUNT, SYS_MKDIR, SYS_MKNOD};
+
+const SYS_FORK: usize = 57;
+const SYS_EXECVE: usize = 59;
+const SYS_EXIT: usize = 60;
+const SYS_WAITPID: usize = 61;
+
+struct Service<'a> {
+    name: &'a [u8],
+    path: &'a [u8],
+    args: &'a [&'a [u8]],
+    pid: Option<usize>,
+}
+
+static mut SERVICES: [Service; 2] = [
+    Service {
+        name: b"login\0",
+        path: b"/bin/login\0",
+        args: &[b"login\0"],
+        pid: None,
+    },
+    Service {
+        name: b"sshd\0",
+        path: b"/bin/sshd\0",
+        args: &[b"sshd\0"],
+        pid: None,
+    }
+];
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     write(b"\x1B[2J\x1B[1;1H"); // Clear screen)
-    let pid = getpid();
+    let pid = get_pid();
 
     if pid == 1 {
         create_dev_node();
         mount_ext4();
-        spawn_login();
+
+        unsafe {
+            for s in SERVICES.iter_mut() {
+                start_service(s);
+            }
+        }
     }
 
-    loop {}
+    loop {
+        unsafe {
+            let exited_pid = syscall1(SYS_WAITPID, -1isize as usize) as usize;
+            for s in SERVICES.iter_mut() {
+                if Some(exited_pid) == s.pid {
+                    write(b"[INFO] Service exited: ");
+                    write(s.name);
+                    write(b"\n");
+
+                    start_service(s); //restart killed service
+                }
+            }
+        }
+    }
 }
 
-fn getpid() -> isize {
-    unsafe { syscall0(SYS_GETPID) }
+
+fn start_service(service: &mut Service) {
+    unsafe {
+        let pid = syscall1(SYS_FORK, 0);
+        if pid == 0 {
+            let argv = [service.args[0].as_ptr(), ptr::null()];
+            syscall3(SYS_EXECVE, service.path.as_ptr() as usize, argv.as_ptr() as usize, 0);
+            syscall1(SYS_EXIT, 1);
+        } else {
+            service.pid = Some(pid as usize);
+            write(b"[INFO] Started service: ");
+            write(service.name);
+            write(b" (pid: ");
+            write_num(service.pid.unwrap_or(0));
+            write(b")");
+            write(b"\n");
+        }
+    }
 }
 
 fn mount_ext4() {
@@ -42,12 +102,6 @@ fn mount_ext4() {
             0,
             0,
         );
-
-        // if res == 0 {
-        //     write(b"Mounted ext4 at /\n");
-        // } else {
-        //     write(b"Mount ext4 failed\n");
-        // }
     }
 }
 
@@ -112,49 +166,6 @@ fn write_num(mut num: usize) {
     }
 
     write(&buf[i..]);
-    write(b"\n");
-}
-
-unsafe fn syscall0(n: usize) -> isize {
-    let ret: isize;
-    core::arch::asm!(
-        "syscall",
-        in("rax") n,
-        lateout("rax") ret,
-        lateout("rcx") _,
-        lateout("r11") _,
-    );
-    ret
-}
-
-unsafe fn syscall1(n: usize, a1: usize) -> isize {
-    let ret: isize;
-    asm!("syscall", in("rax") n, in("rdi") a1, lateout("rax") ret, lateout("rcx") _, lateout("r11") _);
-    ret
-}
-
-unsafe fn syscall2(n: usize, a1: usize, a2: usize) -> isize {
-    let ret: isize;
-    asm!("syscall", in("rax") n, in("rdi") a1, in("rsi") a2, lateout("rax") ret, lateout("rcx") _, lateout("r11") _);
-    ret
-}
-
-unsafe fn syscall3(n: usize, a1: usize, a2: usize, a3: usize) -> isize {
-    let ret: isize;
-    asm!("syscall", in("rax") n, in("rdi") a1, in("rsi") a2, in("rdx") a3, lateout("rax") ret, lateout("rcx") _, lateout("r11") _);
-    ret
-}
-
-unsafe fn syscall4(n: usize, a1: usize, a2: usize, a3: usize, a4: usize) -> isize {
-    let ret: isize;
-    asm!("syscall", in("rax") n, in("rdi") a1, in("rsi") a2, in("rdx") a3, in("r10") a4, lateout("rax") ret, lateout("rcx") _, lateout("r11") _);
-    ret
-}
-
-unsafe fn syscall5(n: usize, a1: usize, a2: usize, a3: usize, a4: usize, a5: usize) -> isize {
-    let ret: isize;
-    asm!("syscall", in("rax") n, in("rdi") a1, in("rsi") a2, in("rdx") a3, in("r10") a4, in("r8") a5, lateout("rax") ret, lateout("rcx") _, lateout("r11") _);
-    ret
 }
 
 #[panic_handler]
