@@ -14,6 +14,7 @@ use std::process::{Command, Stdio};
 use vantara::{safe_println, safe_eprintln};
 use std::fmt::Write as _;
 use std::process::{exit};
+use std::fs::OpenOptions;
 
 struct DirCompleter;
 
@@ -130,25 +131,47 @@ fn main() {
                         if let Err(e) = env::set_current_dir(new_dir) {
                             safe_eprintln(format_args!("cd: {}: {}", new_dir, e));
                         }
-                    }
+                    },
                     "env" => {
                         for (key, value) in env::vars() {
                             safe_println(format_args!("{}={}", key, value));
                         }
-                    }
+                    },
                     "clear" | "cls" => {
                         print!("\x1B[2J\x1B[1;1H");
                         std::io::stdout().flush().unwrap();
-                    }
+                    },
                     "exit" => {
                         safe_println(format_args!("Goodbye, {}!", username));
                         exit(0);
-                    }
+                    },
                     "history" => {
                         for (i, cmd) in rl.history().iter().enumerate() {
                             safe_println(format_args!("{:>4} {}", i + 1, cmd));
                         }
-                    }
+                    },
+                    "service" => {
+                        let svc_name = parts.next();
+                        let action = parts.next().unwrap_or("status");
+
+                        match (svc_name, action) {
+                            (Some(name), "status") => {
+                                run_service_command("status", Some(name));
+                            },
+                            (Some(name), "start") => {
+                                run_service_command("start", Some(name));
+                            },
+                            (Some(name), "stop") => {
+                                run_service_command("stop", Some(name));
+                            },
+                            (Some(name), "restart") => {
+                                run_service_command("restart", Some(name));
+                            },
+                            _ => {
+                                safe_eprintln(format_args!("Usage: service <name> <status|start|stop|restart>"));
+                            }
+                        }
+                    },
                     _ => {
                         let parts: Vec<&str> = input.split_whitespace().collect();
                         if parts.is_empty() {
@@ -162,21 +185,6 @@ fn main() {
                 safe_println(format_args!("sh: error: {}", e));
                 exit(1);
             }
-        }
-    }
-}
-
-fn run_command(cmd: &str, args: &[&str]) {
-    match Command::new(cmd)
-    .args(args)
-    .stdout(Stdio::inherit())
-    .stdin(Stdio::inherit())
-    .stderr(Stdio::inherit())
-    .status()
-    {
-        Ok(_status) => {},
-        Err(_) => {
-            safe_eprintln(format_args!("Command '{}' not found", cmd));
         }
     }
 }
@@ -235,6 +243,22 @@ fn run_pipeline_command(input: &str) {
 
     for mut child in children {
         let _ = child.wait();
+    }
+}
+
+fn run_service_command(cmd: &str, service: Option<&str>) {
+    let mut msg = cmd.to_string();
+    if let Some(svc) = service {
+        msg.push(' ');
+        msg.push_str(svc);
+    }
+    msg.push('\n');
+
+    if let Ok(mut file) = OpenOptions::new().write(true).open("/run/servicectl") {
+        let _ = file.write_all(msg.as_bytes());
+        let _ = file.flush(); // penting!
+    } else {
+        safe_eprintln(format_args!("Failed to send command to init."));
     }
 }
 

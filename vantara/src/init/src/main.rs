@@ -2,88 +2,86 @@
 #![no_main]
 
 mod syscall;
-
+mod service;
 use core::ptr;
-use core::arch::asm;
 use core::panic::PanicInfo;
-
-use crate::syscall::{syscall0, syscall1, syscall2, syscall3, syscall4, syscall5, get_pid, SYS_MOUNT, SYS_MKDIR, SYS_MKNOD};
-
-const SYS_FORK: usize = 57;
-const SYS_EXECVE: usize = 59;
-const SYS_EXIT: usize = 60;
-const SYS_WAITPID: usize = 61;
-
-struct Service<'a> {
-    name: &'a [u8],
-    path: &'a [u8],
-    args: &'a [&'a [u8]],
-    pid: Option<usize>,
-}
-
-static mut SERVICES: [Service; 2] = [
-    Service {
-        name: b"login\0",
-        path: b"/bin/login\0",
-        args: &[b"login\0"],
-        pid: None,
-    },
-    Service {
-        name: b"sshd\0",
-        path: b"/bin/sshd\0",
-        args: &[b"sshd\0"],
-        pid: None,
-    }
-];
+use crate::syscall::{syscall1, syscall2, syscall3, syscall4, syscall5, get_pid, SYS_FORK, SYS_WAITPID, SYS_MOUNT, SYS_MKDIR, SYS_MKNOD, write};
+use crate::service::{SERVICES, start_service, RestartPolicy, can_start, service_control_loop};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    write(b"\x1B[2J\x1B[1;1H"); // Clear screen)
+    write(b"\x1B[2J\x1B[1;1H"); // Clear screen
     let pid = get_pid();
 
     if pid == 1 {
+        write(b"[BOOT] INIT Start\n");
         create_dev_node();
         mount_ext4();
 
         unsafe {
-            for s in SERVICES.iter_mut() {
-                start_service(s);
+            let mut started = 0;
+            let total = SERVICES.len();
+
+            while started < total {
+                for s in SERVICES.iter_mut() {
+                    if s.pid.is_none() && can_start(s) {
+                        write(b"[INIT] Starting service: ");
+                        write(s.name);
+                        write(b"\n");
+                        start_service(s);
+                        started += 1;
+                    }
+                }
+            }
+
+            let ctl_pid = syscall1(SYS_FORK, 0);
+            if ctl_pid == 0 {
+                service_control_loop(); //service control loop disini
             }
         }
+
+        write(b"\x1B[2J\x1B[1;1H"); // Clear screen
+        spawn_login();
     }
 
     loop {
         unsafe {
-            let exited_pid = syscall1(SYS_WAITPID, -1isize as usize) as usize;
+            let mut status: i32 = 0;
+            let exited_pid = syscall4(SYS_WAITPID, -1isize as usize, &mut status as *mut i32 as usize, 0, 0) as usize;
+
+            if exited_pid < 0 {
+                continue;
+            }
+
+            let exit_code = ((status >> 8) & 0xFF) as u8;
+
             for s in SERVICES.iter_mut() {
                 if Some(exited_pid) == s.pid {
                     write(b"[INFO] Service exited: ");
                     write(s.name);
                     write(b"\n");
 
-                    start_service(s); //restart killed service
+                    s.pid = None; //Reset the pid
+
+                    match s.restart {
+                        RestartPolicy::Always => {
+                            write(b"[RESTART] Always policy...\n");
+                            start_service(s);
+                        },
+                        RestartPolicy::OnFailure => {
+                            if exit_code != 0 {
+                                write(b"[RESTART] Failed, restarting...\n");
+                                start_service(s);
+                            } else {
+                                write(b"[RESTART] Clean exit, not restarting\n")
+                            }
+                        },
+                        RestartPolicy::Never => {
+                            write(b"[RESTART] Never policy, not restarting.\n");
+                        }
+                    }
                 }
             }
-        }
-    }
-}
-
-
-fn start_service(service: &mut Service) {
-    unsafe {
-        let pid = syscall1(SYS_FORK, 0);
-        if pid == 0 {
-            let argv = [service.args[0].as_ptr(), ptr::null()];
-            syscall3(SYS_EXECVE, service.path.as_ptr() as usize, argv.as_ptr() as usize, 0);
-            syscall1(SYS_EXIT, 1);
-        } else {
-            service.pid = Some(pid as usize);
-            write(b"[INFO] Started service: ");
-            write(service.name);
-            write(b" (pid: ");
-            write_num(service.pid.unwrap_or(0));
-            write(b")");
-            write(b"\n");
         }
     }
 }
@@ -108,9 +106,14 @@ fn mount_ext4() {
 fn create_dev_node() {
     let dev = b"/dev\0";
     let mnt = b"/mnt\0";
+    let run = b"/run\0";
+    let pipe = b"/run/servicectl\0";
+    let pipe_mode = 0o644 | (1 << 12);
+    let fifo_type = 0o10000;
 
     mkdir(dev, 0o755);
     mkdir(mnt, 0o755);
+    mkdir(run, 0o755);
 
     let sda1 = b"/dev/sda\0";
     let major = 8;
@@ -119,6 +122,7 @@ fn create_dev_node() {
 
     unsafe {
         syscall4(SYS_MKNOD, sda1.as_ptr() as usize, 0o600, devnum, 0);
+        syscall4(SYS_MKNOD, pipe.as_ptr() as usize, fifo_type | pipe_mode, 0, 0);
     }
 }
 
@@ -142,30 +146,6 @@ fn mkdir(path: &[u8], mode: usize) {
     unsafe {
         syscall2(SYS_MKDIR, path.as_ptr() as usize, mode);
     }
-}
-
-fn write(msg: &[u8]) {
-    unsafe {
-        syscall3(1, 1, msg.as_ptr() as usize, msg.len()); // write stdout
-    }
-}
-
-fn write_num(mut num: usize) {
-    let mut buf = [0u8; 20]; // max 20 digit untuk 64-bit integer
-    let mut i = buf.len();
-
-    if num == 0 {
-        write(b"0\n");
-        return;
-    }
-
-    while num > 0 {
-        i -= 1;
-        buf[i] = b'0' + (num % 10) as u8;
-        num /= 10;
-    }
-
-    write(&buf[i..]);
 }
 
 #[panic_handler]
