@@ -5,6 +5,10 @@ pub const SYS_GETPID: usize = 39;
 pub const SYS_MKDIR: usize = 83;
 pub const SYS_MKNOD: usize = 133;
 
+pub fn get_pid() -> isize {
+    unsafe { syscall0(SYS_GETPID) }
+}
+
 pub unsafe fn syscall0(n: usize) -> isize {
     let ret: isize;
     core::arch::asm!(
