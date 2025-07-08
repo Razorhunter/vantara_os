@@ -24,13 +24,13 @@ pub extern "C" fn _start() -> ! {
 
             while started < total {
                 for s in SERVICES.iter_mut() {
-                    if s.pid.is_none() && can_start(s) {
+                    if s.enabled && s.pid.is_none() && can_start(s) {
                         write(b"[INIT] Starting service: ");
                         write(s.name);
                         write(b"\n");
                         start_service(s);
-                        started += 1;
                     }
+                    started += 1;
                 }
             }
 

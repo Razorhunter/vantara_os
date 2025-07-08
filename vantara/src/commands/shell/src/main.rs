@@ -137,7 +137,7 @@ fn main() {
                             safe_println(format_args!("{}={}", key, value));
                         }
                     },
-                    "clear" | "cls" => {
+                    "clear" => {
                         print!("\x1B[2J\x1B[1;1H");
                         std::io::stdout().flush().unwrap();
                     },
@@ -151,24 +151,35 @@ fn main() {
                         }
                     },
                     "service" => {
-                        let svc_name = parts.next();
-                        let action = parts.next().unwrap_or("status");
+                        let first = parts.next();
+                        let second = parts.next();
 
-                        match (svc_name, action) {
-                            (Some(name), "status") => {
+                        match (first, second) {
+                            (Some("list"), None) => {
+                                run_service_command("list", None);
+                            },
+                            (Some(name), Some("enable")) => {
+                                run_service_command("enable", Some(name));
+                            },
+                            (Some(name), Some("disable")) => {
+                                run_service_command("disable", Some(name));
+                            },
+                            (Some(name), Some("status")) => {
                                 run_service_command("status", Some(name));
                             },
-                            (Some(name), "start") => {
+                            (Some(name), Some("start")) => {
                                 run_service_command("start", Some(name));
                             },
-                            (Some(name), "stop") => {
+                            (Some(name), Some("stop")) => {
                                 run_service_command("stop", Some(name));
                             },
-                            (Some(name), "restart") => {
+                            (Some(name), Some("restart")) => {
                                 run_service_command("restart", Some(name));
                             },
                             _ => {
-                                safe_eprintln(format_args!("Usage: service <name> <status|start|stop|restart>"));
+                                safe_eprintln(format_args!(
+                                    "Usage:\n  service list\n  service <name> <status|start|stop|restart|enable|disable>"
+                                ));
                             }
                         }
                     },
