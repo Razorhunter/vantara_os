@@ -4,6 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-
-[build]
-target = "../../target-specs/x86_64-naked.json"
+vantara = { path = "../../" }
+systemd = { path = "../systemd" }

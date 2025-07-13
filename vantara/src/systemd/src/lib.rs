@@ -1,3 +1,6 @@
+pub mod service;
+pub mod manager;
+
 use glob::glob;
 use std::io::{self, Write, Result};
 use std::fs::{read_to_string, write};

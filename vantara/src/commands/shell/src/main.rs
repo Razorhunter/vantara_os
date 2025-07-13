@@ -14,7 +14,10 @@ use std::process::{Command, Stdio};
 use vantara::{safe_println, safe_eprintln};
 use std::fmt::Write as _;
 use std::process::{exit};
-use std::fs::OpenOptions;
+use std::os::unix::net::UnixStream;
+use std::io::Read;
+
+const DEFAULT_SOCKET_PATH: &str = "/run/systemd.sock";
 
 struct DirCompleter;
 
@@ -257,20 +260,90 @@ fn run_pipeline_command(input: &str) {
     }
 }
 
-fn run_service_command(cmd: &str, service: Option<&str>) {
-    let mut msg = cmd.to_string();
-    if let Some(svc) = service {
-        msg.push(' ');
-        msg.push_str(svc);
-    }
-    msg.push('\n');
+fn run_service_command(cmd: &str, name: Option<&str>) {
+    let full_command = match name {
+        Some(n) => format!("{} {}", cmd, n),
+        None => cmd.to_string(),
+    };
 
-    if let Ok(mut file) = OpenOptions::new().write(true).open("/run/servicectl") {
-        let _ = file.write_all(msg.as_bytes());
-        let _ = file.flush(); // penting!
-    } else {
-        safe_eprintln(format_args!("Failed to send command to init."));
+    match UnixStream::connect(DEFAULT_SOCKET_PATH) {
+        Ok(mut stream) => {
+            if let Err(e) = stream.write_all(full_command.as_bytes()) {
+                safe_eprintln(format_args!("Failed to write to socket: {}", e));
+                return;
+            }
+
+            let mut buffer = [0u8; 1024];
+            let mut response = String::new();
+            loop {
+                match stream.read(&mut buffer) {
+                    Ok(0) => break,
+                    Ok(n) => response.push_str(&String::from_utf8_lossy(&buffer[..n])),
+                    Err(e) => {
+                        safe_eprintln(format_args!("Failed to read from socket: {}", e));
+                        break;
+                    }
+                }
+            }
+
+            println!("{}", response);
+        }
+        Err(e) => {
+            safe_eprintln(format_args!("Failed to connect to minisystemd: {}", e));
+        }
     }
+    // let mut manager = ServiceManager::new();
+    // manager.load_services();
+
+    // match cmd {
+    //     "start" => {
+    //         if let Some(name) = service {
+    //             manager.start_service(name);
+    //         } else {
+    //             eprintln!("'start' requires a service name");
+    //         }
+    //     }
+    //     "stop" => {
+    //         if let Some(name) = service {
+    //             manager.stop_service(name);
+    //         } else {
+    //             eprintln!("'stop' requires a service name");
+    //         }
+    //     }
+    //     "restart" => {
+    //         if let Some(name) = service {
+    //             manager.stop_service(name);
+    //             manager.start_service(name);
+    //         } else {
+    //             eprintln!("'restart' requires a service name");
+    //         }
+    //     }
+    //     "enable" => {
+    //         if let Some(name) = service {
+    //             manager.enable_service(name);
+    //         } else {
+    //             eprintln!("'enable' requires a service name");
+    //         }
+    //     }
+    //     "disable" => {
+    //         if let Some(name) = service {
+    //             manager.disable_service(name);
+    //         } else {
+    //             eprintln!("'disable' requires a service name");
+    //         }
+    //     }
+    //     "status" => {
+    //         if let Some(name) = service {
+    //             manager.status_service(name);
+    //         } else {
+    //             eprintln!("'status' requires a service name");
+    //         }
+    //     }
+    //     "list" => {
+    //         manager.list_services();
+    //     }
+    //     _ => eprintln!("Unknown action '{}'", cmd),
+    // }
 }
 
 fn get_display_path(path: &Path) -> String {
