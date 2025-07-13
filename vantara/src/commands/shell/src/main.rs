@@ -14,6 +14,10 @@ use std::process::{Command, Stdio};
 use vantara::{safe_println, safe_eprintln};
 use std::fmt::Write as _;
 use std::process::{exit};
+use std::os::unix::net::UnixStream;
+use std::io::Read;
+
+const DEFAULT_SOCKET_PATH: &str = "/run/systemd.sock";
 
 struct DirCompleter;
 
@@ -130,25 +134,58 @@ fn main() {
                         if let Err(e) = env::set_current_dir(new_dir) {
                             safe_eprintln(format_args!("cd: {}: {}", new_dir, e));
                         }
-                    }
+                    },
                     "env" => {
                         for (key, value) in env::vars() {
                             safe_println(format_args!("{}={}", key, value));
                         }
-                    }
-                    "clear" | "cls" => {
+                    },
+                    "clear" => {
                         print!("\x1B[2J\x1B[1;1H");
                         std::io::stdout().flush().unwrap();
-                    }
+                    },
                     "exit" => {
                         safe_println(format_args!("Goodbye, {}!", username));
                         exit(0);
-                    }
+                    },
                     "history" => {
                         for (i, cmd) in rl.history().iter().enumerate() {
                             safe_println(format_args!("{:>4} {}", i + 1, cmd));
                         }
-                    }
+                    },
+                    "service" => {
+                        let first = parts.next();
+                        let second = parts.next();
+
+                        match (first, second) {
+                            (Some("list"), None) => {
+                                run_service_command("list", None);
+                            },
+                            (Some(name), Some("enable")) => {
+                                run_service_command("enable", Some(name));
+                            },
+                            (Some(name), Some("disable")) => {
+                                run_service_command("disable", Some(name));
+                            },
+                            (Some(name), Some("status")) => {
+                                run_service_command("status", Some(name));
+                            },
+                            (Some(name), Some("start")) => {
+                                run_service_command("start", Some(name));
+                            },
+                            (Some(name), Some("stop")) => {
+                                run_service_command("stop", Some(name));
+                            },
+                            (Some(name), Some("restart")) => {
+                                run_service_command("restart", Some(name));
+                            },
+                            _ => {
+                                safe_eprintln(format_args!(
+                                    "Usage:\n  service list\n  service <name> <status|start|stop|restart|enable|disable>"
+                                ));
+                            }
+                        }
+                    },
                     _ => {
                         let parts: Vec<&str> = input.split_whitespace().collect();
                         if parts.is_empty() {
@@ -162,21 +199,6 @@ fn main() {
                 safe_println(format_args!("sh: error: {}", e));
                 exit(1);
             }
-        }
-    }
-}
-
-fn run_command(cmd: &str, args: &[&str]) {
-    match Command::new(cmd)
-    .args(args)
-    .stdout(Stdio::inherit())
-    .stdin(Stdio::inherit())
-    .stderr(Stdio::inherit())
-    .status()
-    {
-        Ok(_status) => {},
-        Err(_) => {
-            safe_eprintln(format_args!("Command '{}' not found", cmd));
         }
     }
 }
@@ -236,6 +258,92 @@ fn run_pipeline_command(input: &str) {
     for mut child in children {
         let _ = child.wait();
     }
+}
+
+fn run_service_command(cmd: &str, name: Option<&str>) {
+    let full_command = match name {
+        Some(n) => format!("{} {}", cmd, n),
+        None => cmd.to_string(),
+    };
+
+    match UnixStream::connect(DEFAULT_SOCKET_PATH) {
+        Ok(mut stream) => {
+            if let Err(e) = stream.write_all(full_command.as_bytes()) {
+                safe_eprintln(format_args!("Failed to write to socket: {}", e));
+                return;
+            }
+
+            let mut buffer = [0u8; 1024];
+            let mut response = String::new();
+            loop {
+                match stream.read(&mut buffer) {
+                    Ok(0) => break,
+                    Ok(n) => response.push_str(&String::from_utf8_lossy(&buffer[..n])),
+                    Err(e) => {
+                        safe_eprintln(format_args!("Failed to read from socket: {}", e));
+                        break;
+                    }
+                }
+            }
+
+            println!("{}", response);
+        }
+        Err(e) => {
+            safe_eprintln(format_args!("Failed to connect to minisystemd: {}", e));
+        }
+    }
+    // let mut manager = ServiceManager::new();
+    // manager.load_services();
+
+    // match cmd {
+    //     "start" => {
+    //         if let Some(name) = service {
+    //             manager.start_service(name);
+    //         } else {
+    //             eprintln!("'start' requires a service name");
+    //         }
+    //     }
+    //     "stop" => {
+    //         if let Some(name) = service {
+    //             manager.stop_service(name);
+    //         } else {
+    //             eprintln!("'stop' requires a service name");
+    //         }
+    //     }
+    //     "restart" => {
+    //         if let Some(name) = service {
+    //             manager.stop_service(name);
+    //             manager.start_service(name);
+    //         } else {
+    //             eprintln!("'restart' requires a service name");
+    //         }
+    //     }
+    //     "enable" => {
+    //         if let Some(name) = service {
+    //             manager.enable_service(name);
+    //         } else {
+    //             eprintln!("'enable' requires a service name");
+    //         }
+    //     }
+    //     "disable" => {
+    //         if let Some(name) = service {
+    //             manager.disable_service(name);
+    //         } else {
+    //             eprintln!("'disable' requires a service name");
+    //         }
+    //     }
+    //     "status" => {
+    //         if let Some(name) = service {
+    //             manager.status_service(name);
+    //         } else {
+    //             eprintln!("'status' requires a service name");
+    //         }
+    //     }
+    //     "list" => {
+    //         manager.list_services();
+    //     }
+    //     _ => eprintln!("Unknown action '{}'", cmd),
+    // }
 }
 
 fn get_display_path(path: &Path) -> String {

@@ -9,23 +9,15 @@ TARGET := build/VanOS.iso
 ROOTFS := build/rootfs
 ISO := iso
 INITRAMFS := build/initramfs.cpio.gz
-
 MUSL_TARGET := x86_64-unknown-linux-musl
-NAKED_TARGET := vantara/target-specs/x86_64-naked.json
 USERLAND := vantara
-INIT_BUILD_TARGET := x86_64-naked/debug
-
 MOUNT_DIR := build/mnt
 IMAGE_FILE := build/vantara.ext4
 IMAGE_SIZE := 4096
-
 CHECKSUM_DIR := build/.checksums
-
 OUT_DIR = ../$(ROOTFS)/bin
 INIT_OUT_DIR = ../$(ROOTFS)/sbin
-BUILD_TARGET = x86_64-unknown-linux-musl/release
-INIT_BUILD_TARGET = x86_64-naked/debug
-TARGET_JSON = target-specs/x86_64-naked.json
+BUILD_TARGET = $(MUSL_TARGET)/release
 COMMANDS_DIR := vantara/src/commands
 PROJECTS := $(notdir $(wildcard $(COMMANDS_DIR)/*))
 
@@ -52,7 +44,7 @@ build-rootfs: $(PROJECTS) init
 	done
 
 	@echo "[Copy] Init to $(ROOTFS)/sbin..."
-	cp $(USERLAND)/target/$(INIT_BUILD_TARGET)/init $(ROOTFS)/sbin/init
+	cp $(USERLAND)/target/$(BUILD_TARGET)/init $(ROOTFS)/sbin/init
 	
 	chmod +x $(ROOTFS)/sbin/init $(ROOTFS)/bin/*
 
@@ -135,7 +127,7 @@ clean-checksum:
 $(PROJECTS):
 	@echo "[*] Building $@..."
 	cd $(USERLAND)
-	cargo build --release --target x86_64-unknown-linux-musl -p $@
+	cargo build --release --target $(MUSL_TARGET) -p $@
 	mkdir -p $(OUT_DIR)
 	cp target/$(BUILD_TARGET)/$@ $(OUT_DIR)/
 	chmod u+s $(OUT_DIR)/$@
@@ -144,12 +136,9 @@ $(PROJECTS):
 init:
 	@echo "[*] Building init..."
 	cd $(USERLAND)
-	cargo +nightly build \
-		-Z build-std=core,compiler_builtins \
-		--target $(TARGET_JSON) \
-		-p init
+	cargo build --release --target $(MUSL_TARGET) -p init
 	mkdir -p $(INIT_OUT_DIR)
-	cp target/$(INIT_BUILD_TARGET)/init $(INIT_OUT_DIR)/
+	cp target/$(BUILD_TARGET)/init $(INIT_OUT_DIR)/
 	chmod u+s $(INIT_OUT_DIR)/init
 	@echo "[✓] init built and copied to $(INIT_OUT_DIR)/"
 

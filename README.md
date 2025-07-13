@@ -35,25 +35,25 @@ This project is an effort to build from the ground up: an OS that we understand,
 
 Roadmap are in planning phase where we will break-down the timeline with components development and distribution
 
----
+<!-- ---
 
 ## 💪 Support Me To Focus Full Time
 
 I am Hafifi, the lead developer of this project. 
-I am in the process of leaving my full-time job to focus fully on Vantara OS.
 
 With your support:
 - I can support my life & family while continuing to develop this project
 - Documentation & tutorials can be provided to the community
 - The source code will be updated and transparently opened
 
-👉 [💖 Jadi Penaja Projek di GitHub Sponsors](https://github.com/sponsors/Razorhunter)
+👉 [💖 Jadi Penaja Projek di GitHub Sponsors](https://github.com/sponsors/Razorhunter) -->
 
 ---
 
 ## 🙌 How You Can Help
 
-✅ Become a sponsor → [GitHub Sponsors](https://github.com/sponsors/Razorhunter) 
+✅ Donation → [Open Collective](https://opencollective.com/vantara_os) 
+<!-- ✅ Become a sponsor → [GitHub Sponsors](https://github.com/sponsors/Razorhunter) -->
 ✅ Share this project on social media / dev community 
 ✅ Join development (to be opened later) 
 ✅ Give feedback, ideas, or moral support

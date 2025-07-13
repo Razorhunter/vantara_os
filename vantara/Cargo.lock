@@ -426,6 +426,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "gunzip"
+version = "0.1.0"
+dependencies = [
+ "flate2",
+ "vantara",
+]
+
+[[package]]
+name = "gzip"
+version = "0.1.0"
+dependencies = [
+ "flate2",
+ "vantara",
+]
+
+[[package]]
 name = "head"
 version = "0.1.0"
 dependencies = [
@@ -474,6 +490,10 @@ dependencies = [
 [[package]]
 name = "init"
 version = "0.1.0"
+dependencies = [
+ "systemd",
+ "vantara",
+]
 
 [[package]]
 name = "js-sys"
@@ -965,6 +985,7 @@ version = "0.1.0"
 dependencies = [
  "dirs",
  "rustyline",
+ "systemd",
  "vantara",
 ]
 
@@ -1019,6 +1040,14 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "systemd"
+version = "0.1.0"
+dependencies = [
+ "glob",
+ "nix",
 ]
 
 [[package]]
@@ -1130,6 +1159,7 @@ name = "vantara"
 version = "0.1.0"
 dependencies = [
  "glob",
+ "nix",
 ]
 
 [[package]]
