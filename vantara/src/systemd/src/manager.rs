@@ -3,7 +3,6 @@ use crate::service::Service;
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::os::unix::fs::symlink;
 use std::os::unix::net::UnixListener;
 use std::io::{Read, Write};
 use std::sync::{Mutex, Arc};
@@ -143,7 +142,8 @@ impl ServiceManager {
             }
             "status" => {
                 if let Some(name) = parts.get(1) {
-                    self.status_service(name)
+                    self.status_service(name);
+                    format!("")
                 } else {
                     "status <service> required\n".into()
                 }
@@ -154,9 +154,9 @@ impl ServiceManager {
     }
 
     pub fn start_enabled_services(&mut self) {
-        for mut svc in Self::read_enabled_services(DEFAULT_SERVICE_ENABLED_PATH) {
+        for svc in Self::read_enabled_services(DEFAULT_SERVICE_ENABLED_PATH) {
             safe_println(format_args!("[INIT] Starting service {}", svc.name));
-            svc.start();
+            self.start_service(&svc.name);
         }
     }
 
@@ -215,57 +215,44 @@ impl ServiceManager {
         services
     }
 
-    pub fn start_service(&mut self, name: &str) {
+    fn start_service(&mut self, name: &str) {
         if let Some(service) = self.services.get_mut(name) {
             service.start();
         } else {
-            eprintln!("Service '{}' not found", name);
+            safe_eprintln(format_args!("Service '{}' not found", name));
         }
     }
 
-    pub fn stop_service(&mut self, name: &str) {
+    fn stop_service(&mut self, name: &str) {
         if let Some(service) = self.services.get_mut(name) {
-            if let Some(pid) = service.pid {
-                let _ = nix::sys::signal::kill(pid, nix::sys::signal::Signal::SIGTERM);
-                println!("Stopped service {}", name);
-            } else {
-                println!("Service '{}' not running", name);
-            }
+            service.stop();
         } else {
-            eprintln!("Service '{}' not found", name);
+            safe_eprintln(format_args!("Service '{}' not found", name));
         }
     }
 
-    pub fn enable_service(&mut self, name: &str) {
-        let source = format!("{}/{}.service", DEFAULT_SERVICE_AVAILABLE_PATH, name);
-        let target = format!("{}/{}.service", DEFAULT_SERVICE_ENABLED_PATH, name);
+    fn enable_service(&mut self, name: &str) {
+        if let Some(service) = self.services.get_mut(name) {
+            let source = format!("{}/{}.service", DEFAULT_SERVICE_AVAILABLE_PATH, name);
+            let target = format!("{}/{}.service", DEFAULT_SERVICE_ENABLED_PATH, name);
 
-        if Path::new(&target).exists() {
-            println!("Service '{}' already enabled", name);
-            return;
-        }
-
-        match symlink(&source, &target) {
-            Ok(_) => println!("Enabled service '{}'", name),
-            Err(e) => eprintln!("Failed to enable '{}': {}", name, e),
+            service.enable(&source, &target);
+        } else {
+            safe_eprintln(format_args!("Service '{}' not found", name));
         }
     }
 
-    pub fn disable_service(&mut self, name: &str) {
-        let target = format!("{}/{}.service", DEFAULT_SERVICE_ENABLED_PATH, name);
+    fn disable_service(&mut self, name: &str) {
+        if let Some(service) = self.services.get_mut(name) {
+            let target = format!("{}/{}.service", DEFAULT_SERVICE_ENABLED_PATH, name);
 
-        if !Path::new(&target).exists() {
-            println!("Service '{}' not enabled", name);
-            return;
-        }
-
-        match fs::remove_file(&target) {
-            Ok(_) => println!("Disabled service '{}'", name),
-            Err(e) => eprintln!("Failed to disable '{}': {}", name, e),
+            service.disable(&target);
+        } else {
+            safe_eprintln(format_args!("Service '{}' not found", name));
         }
     }
 
-    pub fn list_services(&self) -> String {
+    fn list_services(&self) -> String {
         let mut output = String::new();
         for (name, svc) in &self.services {
             output += &format!(
@@ -278,28 +265,14 @@ impl ServiceManager {
         output
     }
 
-    pub fn status_service(&self, name: &str) -> String {
-        let enabled_path = format!("{}/{}.service", DEFAULT_SERVICE_ENABLED_PATH, name);
-        let is_enabled = Path::new(&enabled_path).exists();
+    fn status_service(&mut self, name: &str) {
+        if let Some(service) = self.services.get_mut(name) {
+            let enabled_path = format!("{}/{}.service", DEFAULT_SERVICE_ENABLED_PATH, name);
+            let is_enabled = Path::new(&enabled_path).exists();
 
-        let mut output = format!("Service: {}\n", name);
-
-        if let Some(service) = self.services.get(name) {
-            let running = if let Some(pid) = service.pid {
-                let is_alive = nix::sys::signal::kill(pid, None).is_ok();
-                output += &format!("  PID    : {}\n", pid);
-                is_alive
-            } else {
-                output += "  PID    : None\n";
-                false
-            };
-
-            output += &format!("  Enabled: {}\n", if is_enabled { "Yes" } else { "No" });
-            output += &format!("  Running: {}\n", if running { "Yes" } else { "No" });
+            service.status(is_enabled);
         } else {
-            output += &format!("Service '{}' not found in available services\n", name);
+            safe_eprintln(format_args!("Service '{}' not found", name));
         }
-
-        output
     }
 }

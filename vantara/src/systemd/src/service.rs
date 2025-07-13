@@ -3,6 +3,7 @@ use std::path::Path;
 use std::ffi::CString;
 use nix::unistd::{fork, ForkResult, execv, Pid};
 use crate::{safe_println, safe_eprintln};
+use std::os::unix::fs::symlink;
 
 #[derive(Debug)]
 #[derive(Clone)]
@@ -48,11 +49,6 @@ impl Service {
     }
 
     pub fn start(&mut self) {
-        if !self.enabled {
-            safe_println(format_args!("[INIT] Skipping disabled service {}", self.name));
-            return;
-        }
-
         match unsafe { fork() } {
             Ok(ForkResult::Parent { child }) => {
                 safe_println(format_args!("[INIT] Started service {} with PID {}", self.name, child));
@@ -67,5 +63,53 @@ impl Service {
                 safe_eprintln(format_args!("[INIT] Failed to create service for {}: {}", self.name, err));
             }
         }
+    }
+
+    pub fn stop(&mut self) {
+        if let Some(pid) = self.pid {
+            println!("Stop service {}", self.name);
+            let _ = nix::sys::signal::kill(pid, nix::sys::signal::Signal::SIGTERM);
+        } else {
+            println!("Service '{}' not running", self.name);
+        }
+    }
+
+    pub fn enable(&mut self, source: &str, target: &str) {
+        if Path::new(&target).exists() {
+            println!("Service '{}' already enabled", self.name);
+            return;
+        }
+
+        match symlink(&source, &target) {
+            Ok(_) => println!("Enabling service '{}'", self.name),
+            Err(e) => eprintln!("Failed to enable '{}': {}", self.name, e),
+        }
+    }
+
+    pub fn disable(&mut self, target: &str) {
+        if !Path::new(&target).exists() {
+            println!("Service '{}' not enabled", self.name);
+            return;
+        }
+
+        match fs::remove_file(&target) {
+            Ok(_) => println!("Disabling service '{}'", self.name),
+            Err(e) => eprintln!("Failed to disable '{}': {}", self.name, e),
+        }
+    }
+
+    pub fn status(&mut self, is_enabled: bool) {
+        safe_println(format_args!("  Service Name: {}", self.name));
+        let running = if let Some(pid) = self.pid {
+            let is_alive = nix::sys::signal::kill(pid, None).is_ok();
+            safe_println(format_args!("           PID: {}", pid));
+            is_alive
+        } else {
+            safe_println(format_args!("           PID: None"));
+            false
+        };
+
+        safe_println(format_args!("       Enabled: {}", if is_enabled { "Yes" } else { "No" }));
+        safe_println(format_args!("       Running: {}", if running { "Yes" } else { "No" }));
     }
 }
