@@ -9,6 +9,7 @@ path = "src/systemd/src/lib.rs"
 [dependencies]
 glob = "0.3"
 nix = { version = "0.30", features = ["process", "signal"] }
+chrono = "0.4"
 
 [workspace]
 members = [

@@ -9,8 +9,8 @@ use std::sync::{Mutex, Arc};
 use std::thread;
 use std::os::unix::fs::PermissionsExt;
 
-const DEFAULT_SERVICE_AVAILABLE_PATH: &str = "/etc/service/available";
-const DEFAULT_SERVICE_ENABLED_PATH: &str = "/etc/service/enabled";
+pub const DEFAULT_SERVICE_AVAILABLE_PATH: &str = "/etc/service/available";
+pub const DEFAULT_SERVICE_ENABLED_PATH: &str = "/etc/service/enabled";
 const DEFAULT_SOCKET_PATH: &str = "/run/systemd.sock";
 
 pub struct ServiceManager {
@@ -256,10 +256,14 @@ impl ServiceManager {
         let mut output = String::new();
         for (name, svc) in &self.services {
             output += &format!(
-                "{} [{}] {}\n",
+                "[{}] {} [{}] {} {}\n",
+                if svc.pid.is_some() { '*' } else { ' ' },
                 name,
                 if svc.enabled { "ENABLED" } else { "DISABLED" },
-                if svc.pid.is_some() { "RUNNING" } else { "STOPPED" }
+                if svc.pid.is_some() { "running" } else { "stopped" },
+                if let Some(pid) = svc.pid {
+                    format!("at pid {}", pid) } else { String::new()
+                }
             );
         }
         output
@@ -267,10 +271,7 @@ impl ServiceManager {
 
     fn status_service(&mut self, name: &str) {
         if let Some(service) = self.services.get_mut(name) {
-            let enabled_path = format!("{}/{}.service", DEFAULT_SERVICE_ENABLED_PATH, name);
-            let is_enabled = Path::new(&enabled_path).exists();
-
-            service.status(is_enabled);
+            service.status();
         } else {
             safe_eprintln(format_args!("Service '{}' not found", name));
         }
