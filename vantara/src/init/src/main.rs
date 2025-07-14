@@ -1,7 +1,7 @@
 use std::fs::{create_dir_all, File};
 use std::io::Write;
 use std::process::{Command, Stdio};
-use vantara::{safe_println};
+use vantara::{safe_println, show_boot_banner};
 use systemd::manager::ServiceManager;
 use std::sync::Arc;
 
@@ -11,7 +11,7 @@ fn main() {
     create_dev_node();
     mount_ext4();
     load_enable_services();
-    // clear_screen();
+    show_boot_banner();
     spawn_app();
     loop {}
 }

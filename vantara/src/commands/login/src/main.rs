@@ -37,8 +37,6 @@ struct GroupEntry {
 }
 
 fn main() {
-    show_boot_banner();
-
     if !Path::new(DEFAULT_PASSWD_FILE).exists() || !Path::new(DEFAULT_SHADOW_FILE).exists() {
         safe_println(format_args!("It seems this is a new machine and it needs an administrator. Setting one now"));
         add_root_user();
@@ -74,19 +72,6 @@ fn main() {
             safe_println(format_args!("Please try again"));
         }
     }
-}
-
-fn show_boot_banner() {
-    safe_println(format_args!("{}", r#"
-    __     __          _                  
-    \ \   / /_ _ _ __ | |_ __ _ _ __ __ _ 
-     \ \ / / _` | '_ \| __/ _` | '__/ _` |
-      \ V / (_| | | | | || (_| | | | (_| |
-       \_/ \__,_|_| |_|\__\__,_|_|  \__,_|
-           Desktop Operating System       
-                                          
-          Welcome to the VanOS 0.1.0      
-    "#));
 }
 
 fn read_password() -> String {

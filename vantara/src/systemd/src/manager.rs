@@ -262,7 +262,7 @@ impl ServiceManager {
                 if svc.enabled { "ENABLED" } else { "DISABLED" },
                 if svc.pid.is_some() { "running" } else { "stopped" },
                 if let Some(pid) = svc.pid {
-                    format!("at pid {}", pid) } else { String::new()
+                    format!("at PID {}", pid) } else { String::new()
                 }
             );
         }
