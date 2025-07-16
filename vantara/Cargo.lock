@@ -1047,6 +1047,7 @@ dependencies = [
 name = "systemd"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "glob",
  "nix",
 ]
@@ -1159,6 +1160,7 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 name = "vantara"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "glob",
  "nix",
 ]

@@ -21,6 +21,18 @@ macro_rules! print_version {
     };
 }
 
+pub fn show_boot_banner() {
+    safe_println(format_args!("{}", r#"
+    __     __          _                  
+    \ \   / /_ _ _ __ | |_ __ _ _ __ __ _ 
+     \ \ / / _` | '_ \| __/ _` | '__/ _` |
+      \ V / (_| | | | | || (_| | | | (_| |
+       \_/ \__,_|_| |_|\__\__,_|_|  \__,_|
+             Operating System             
+    "#));
+    safe_println(format_args!("        Welcome to the VanOS {}        \n", env!("CARGO_PKG_VERSION")));
+}
+
 pub fn safe_println(args: std::fmt::Arguments) {
     let stdout = io::stdout();
     let mut handle = stdout.lock();
