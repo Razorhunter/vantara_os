@@ -7,7 +7,7 @@ fn main() {
     if args.len() == 1 {
         // Tiada argumen: papar tarikh & masa sekarang
         let now = Local::now();
-        safe_println(format_args!("{}", now.format("%a %b %e %T %Z %Y")));
+        safe_println(format_args!("{}", now.format("%a %b %e %Y %T %Z")));
     } else {
         safe_eprintln(format_args!("Usage: {} [no arguments]", args[0]));
     }

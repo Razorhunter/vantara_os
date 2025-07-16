@@ -9,3 +9,4 @@ license = "MIT"
 [dependencies]
 vantara = { path = "../../../" }
 chrono = "0.4"
+ibc = "0.2"
