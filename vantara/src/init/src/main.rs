@@ -12,9 +12,10 @@ fn main() {
     safe_println(format_args!("[BOOT] INIT Start"));
     create_dev_node();
     mount_ext4();
+    clear_screen();
+    show_boot_banner();
     setup::setup_firstboot();
     load_enable_services();
-    clear_screen();
     spawn_app();
     loop {}
 }

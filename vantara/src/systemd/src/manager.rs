@@ -71,7 +71,7 @@ impl ServiceManager {
         thread::spawn(move || {
             for stream in listener_arc.incoming() {
                 match stream {
-                    Ok(mut socksocketet) => {
+                    Ok(mut socket) => {
                         let mut buffer = [0u8; 512];
                         if let Ok(n) = socket.read(&mut buffer) {
                             let input = String::from_utf8_lossy(&buffer[..n]).to_string();
