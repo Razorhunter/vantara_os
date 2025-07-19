@@ -1,0 +1,11 @@
+[package]
+name = "uname"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hafifi"]
+description = "Vantara System OS uname module"
+license = "MIT"
+
+[dependencies]
+libc = "0.2"
+vantara = { path = "../../../" }
