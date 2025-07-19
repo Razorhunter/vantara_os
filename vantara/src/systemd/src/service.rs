@@ -20,6 +20,7 @@ pub struct Service {
     pub enabled: bool,
     pub pid: Option<Pid>,
     pub start_time: Option<SystemTime>,
+    pub stop_time: Option<SystemTime>,
 }
 
 impl Service {
@@ -65,6 +66,7 @@ impl Service {
             enabled,
             pid: None,
             start_time: None,
+            stop_time: None,
         })
     }
 
@@ -74,6 +76,7 @@ impl Service {
                 safe_println(format_args!("[INIT] Started service {} with PID {}", self.name, child));
                 self.pid = Some(child);
                 self.start_time = Some(SystemTime::now());
+                self.stop_time = None;
             }
             Ok(ForkResult::Child) => {
                 let exec_path = CString::new(self.exec.clone()).unwrap();
@@ -101,6 +104,8 @@ impl Service {
                 if nix::sys::signal::kill(pid, None).is_err() {
                     // Proses dah mati
                     self.pid = None;
+                    self.stop_time = Some(SystemTime::now());
+                    self.start_time = None;
                     safe_println(format_args!("Stopped service {}", self.name));
                     return;
                 }
@@ -141,23 +146,30 @@ impl Service {
     }
 
     pub fn status(&mut self) {
-        safe_println(format_args!("     Loaded at: {}", self.loaded_path));
-        safe_println(format_args!("  Service Name: {}", self.name));
+        safe_println(format_args!("      Loaded at: {}", self.loaded_path));
+        safe_println(format_args!("   Service Name: {}", self.name));
         let running = if let Some(pid) = self.pid {
             let is_alive = nix::sys::signal::kill(pid, None).is_ok();
-            safe_println(format_args!("           PID: {}", pid));
+            safe_println(format_args!("            PID: {}", pid));
             is_alive
         } else {
-            safe_println(format_args!("           PID: None"));
+            safe_println(format_args!("            PID: None"));
             false
         };
 
-        safe_println(format_args!("       Enabled: {}", if self.enabled { "Yes" } else { "No" }));
-        safe_println(format_args!("       Running: {}", if running { "Yes" } else { "No" }));
+        safe_println(format_args!("        Enabled: {}", if self.enabled { "Yes" } else { "No" }));
+        safe_println(format_args!("        Running: {}", if running { "Yes" } else { "No" }));
 
-        if let Some(time) = self.start_time {
-            let dt: DateTime<Local> = DateTime::from(time);
-            safe_println(format_args!(" Started since: {}", dt.format("%Y-%m-%d %H:%M:%S UTC")));
+        if running {
+            if let Some(time) = self.start_time {
+                let dt: DateTime<Local> = DateTime::from(time);
+                safe_println(format_args!("   Active since: {}", dt.format("%Y-%m-%d %H:%M:%S UTC")));
+            }
+        } else {
+            if let Some(time) = self.stop_time {
+                let dt: DateTime<Local> = DateTime::from(time);
+                safe_println(format_args!(" Inactive since: {}", dt.format("%Y-%m-%d %H:%M:%S UTC")));
+            }
         }
     }
 }
