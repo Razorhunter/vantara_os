@@ -6,7 +6,7 @@ use std::time::{UNIX_EPOCH};
 use chrono::{DateTime, Local};
 use std::process::{exit};
 use users::{get_user_by_uid, get_group_by_gid};
-use vantara::{package_name, safe_println, safe_eprintln, safe_print, print_version};
+use vantara::{package_name, safe_println, safe_eprintln, safe_print, print_version, get_system_timezone};
 
 struct Options {
     show_hidden: bool,
@@ -149,6 +149,7 @@ fn list_dir_recursive<P: AsRef<Path>>(start_path: P, show_hidden: bool, long_for
 }
 
 fn print_metadata(entry: &DirEntry, meta: &Metadata, long_format: bool) {
+    let tz = get_system_timezone();
     let file_name = entry.file_name().to_string_lossy().to_string();
     let permissions = meta.permissions().mode();
 
@@ -158,6 +159,7 @@ fn print_metadata(entry: &DirEntry, meta: &Metadata, long_format: bool) {
         let size = meta.len();
         let modified = meta.modified().unwrap_or(UNIX_EPOCH);
         let datetime: DateTime<Local> = DateTime::from(modified);
+        let localtime = datetime.with_timezone(&tz);
 
         let perms_str = format!(
             "{}[{}{}{}{}{}{}{}{}{}]",
@@ -191,7 +193,7 @@ fn print_metadata(entry: &DirEntry, meta: &Metadata, long_format: bool) {
             size,
             user,
             group,
-            datetime.format("%Y-%m-%d %H:%M"),
+            localtime.format("%Y-%m-%d %H:%M"),
             fg.0, fg.1, fg.2,
             file_name,
             "\x1b[0m",
