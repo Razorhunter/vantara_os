@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 use std::ffi::CString;
 use nix::unistd::{fork, ForkResult, execv, Pid};
-use crate::{safe_println, safe_eprintln};
+use crate::{safe_println, safe_eprintln, get_system_timezone};
 use std::os::unix::fs::symlink;
 use nix::sys::wait::{waitpid, WaitPidFlag};
 use std::time::SystemTime;
@@ -146,6 +146,8 @@ impl Service {
     }
 
     pub fn status(&mut self) {
+        let tz = get_system_timezone();
+
         safe_println(format_args!("      Loaded at: {}", self.loaded_path));
         safe_println(format_args!("   Service Name: {}", self.name));
         let running = if let Some(pid) = self.pid {
@@ -163,12 +165,14 @@ impl Service {
         if running {
             if let Some(time) = self.start_time {
                 let dt: DateTime<Local> = DateTime::from(time);
-                safe_println(format_args!("   Active since: {}", dt.format("%Y-%m-%d %H:%M:%S UTC")));
+                let localtime = dt.with_timezone(&tz);
+                safe_println(format_args!("   Active since: {}", localtime.format("%Y-%m-%d %H:%M:%S %Z")));
             }
         } else {
             if let Some(time) = self.stop_time {
                 let dt: DateTime<Local> = DateTime::from(time);
-                safe_println(format_args!(" Inactive since: {}", dt.format("%Y-%m-%d %H:%M:%S UTC")));
+                let localtime = dt.with_timezone(&tz);
+                safe_println(format_args!(" Inactive since: {}", localtime.format("%Y-%m-%d %H:%M:%S %Z")));
             }
         }
     }

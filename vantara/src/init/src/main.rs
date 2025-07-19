@@ -13,11 +13,10 @@ fn main() {
     create_dev_node();
     mount_ext4();
     clear_screen();
-    show_boot_banner();
     setup::setup_firstboot();
     load_enable_services();
+    show_boot_banner();
     spawn_app();
-    loop {}
 }
 
 fn load_enable_services() {
