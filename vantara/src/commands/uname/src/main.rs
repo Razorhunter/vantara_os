@@ -22,30 +22,35 @@ fn main() {
 
     let mut output = Vec::new();
     for arg in args {
-        if arg.starts_with('-') {
-            for ch in arg.chars().skip(1) {
-                match ch {
-                    's' => output.push(sysname.clone()),
-                    'n' => output.push(nodename.clone()),
-                    'r' => output.push(release.clone()),
-                    'v' => output.push(version.clone()),
-                    'm' => output.push(machine.clone()),
-                    'a' => {
-                        output = vec![
-                            sysname.clone(),
-                            nodename.clone(),
-                            release.clone(),
-                            version.clone(),
-                            machine.clone(),
-                        ];
-                        break;
-                    }
-                    _ => {
-                        safe_eprintln(format_args!("{}: unknown flag -{}", package_name!(), ch));
-                        exit(1);
+        match arg.as_str() {
+            "--help" => { print_usage(); exit(0); },
+            "--version" => { print_version!(); exit(0) },
+            _ if arg.starts_with('-') => {
+                for ch in arg.chars().skip(1) {
+                    match ch {
+                        's' => output.push(sysname.clone()),
+                        'n' => output.push(nodename.clone()),
+                        'r' => output.push(release.clone()),
+                        'v' => output.push(version.clone()),
+                        'm' | 'p' | 'i' => output.push(machine.clone()),
+                        'a' => {
+                            output = vec![
+                                sysname.clone(),
+                                nodename.clone(),
+                                release.clone(),
+                                version.clone(),
+                                machine.clone(),
+                            ];
+                            break;
+                        }
+                        _ => {
+                            safe_eprintln(format_args!("{}: unknown flag -{}", package_name!(), ch));
+                            exit(1);
+                        }
                     }
                 }
             }
+            _ => {}
         }
     }
 
@@ -68,4 +73,14 @@ fn get_uname() -> Result<(String, String, String, String, String), String> {
             CStr::from_ptr(uname_data.machine.as_ptr()).to_string_lossy().to_string(),
         ))
     }
+}
+
+fn print_usage() {
+    safe_println(format_args!("Usage: {} -[OPTIONS]", package_name!()));
+    safe_println(format_args!("     s           Print kernel name"));
+    safe_println(format_args!("     n           Print network node hostname"));
+    safe_println(format_args!("     r           Print kernel release"));
+    safe_println(format_args!("     v           Print kernel version"));
+    safe_println(format_args!("     m           Print machine hardware name"));
+    safe_println(format_args!("     a           Print all the information above"));
 }
