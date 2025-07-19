@@ -1,7 +1,9 @@
+mod setup;
+
 use std::fs::{create_dir_all, File};
 use std::io::Write;
 use std::process::{Command, Stdio};
-use vantara::{safe_println};
+use vantara::{safe_println, show_boot_banner};
 use systemd::manager::ServiceManager;
 use std::sync::Arc;
 
@@ -10,10 +12,11 @@ fn main() {
     safe_println(format_args!("[BOOT] INIT Start"));
     create_dev_node();
     mount_ext4();
+    clear_screen();
+    setup::setup_firstboot();
     load_enable_services();
-    // clear_screen();
+    show_boot_banner();
     spawn_app();
-    loop {}
 }
 
 fn load_enable_services() {
@@ -41,6 +44,7 @@ fn create_dev_node() {
     let _ = create_dir_all("/dev");
     let _ = create_dir_all("/mnt");
     let _ = create_dir_all("/run");
+    let _ = create_dir_all("/usr");
     let _ = create_dir_all("/etc/service/available");
     let _ = create_dir_all("/etc/service/enabled");
 

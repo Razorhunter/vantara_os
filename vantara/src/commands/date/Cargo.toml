@@ -1,0 +1,13 @@
+[package]
+name = "date"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hafifi"]
+description = "Vantara System OS date module"
+license = "MIT"
+
+[dependencies]
+vantara = { path = "../../../" }
+chrono = "0.4"
+chrono-tz="0.10.4"
+libc = "0.2"
