@@ -1,6 +1,7 @@
 pub mod service;
 pub mod manager;
 
+use chrono_tz::Tz;
 use glob::glob;
 use std::io::{self, Write, Result};
 use std::fs::{read_to_string, write};
@@ -71,6 +72,7 @@ pub fn expand_wildcards(patterns: &[String]) -> Vec<String> {
 
     expanded
 }
+
 pub fn confirm(prompt: &str) -> bool {
     safe_print(format_args!("{} (y/N) ", prompt.trim()));
     io::stdout().flush().unwrap();
@@ -81,4 +83,15 @@ pub fn confirm(prompt: &str) -> bool {
     } else {
         false
     }
+}
+
+pub fn get_system_timezone() -> Tz {
+    if let Ok(path) = std::fs::read_link("/etc/localtime") {
+        if let Ok(rel_path) = path.strip_prefix("/usr/share/zoneinfo/") {
+            if let Some(tz_str) = rel_path.to_str() {
+                return tz_str.parse().unwrap_or(chrono_tz::UTC);
+            }
+        }
+    }
+    chrono_tz::UTC
 }

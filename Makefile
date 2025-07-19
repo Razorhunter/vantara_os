@@ -20,6 +20,9 @@ INIT_OUT_DIR = ../$(ROOTFS)/sbin
 BUILD_TARGET = $(MUSL_TARGET)/release
 COMMANDS_DIR := vantara/src/commands
 PROJECTS := $(notdir $(wildcard $(COMMANDS_DIR)/*))
+TZSRC := tzdata2025b
+OUT_DIR_TZ := build/zoneinfo
+ZONE_INFO_OUT := usr/share/zoneinfo
 
 all: clean build-rootfs build-ext4-image
 
@@ -56,15 +59,27 @@ build-ext4-image: $(KERNEL_OUTPUT)
 	@echo "[Image] Updating ext4 image if needed..."
 	@mkdir -p $(MOUNT_DIR) $(CHECKSUM_DIR) $(ROOTFS)
 
+	@echo "[Check] Creating image if not exist..."
 	@if [ ! -f "$(IMAGE_FILE)" ]; then \
 		echo "[Image] Creating new ext4 image..."; \
 		dd if=/dev/zero of="$(IMAGE_FILE)" bs=1M count=$(IMAGE_SIZE); \
 		mkfs.ext4 $(IMAGE_FILE); \
+		echo "1" > .image_boot_flag; \
+	else \
+		echo "0" > .image_boot_flag; \
 	fi
 
 	@echo "[Mount] Mounting image..."
 	sudo mount $(IMAGE_FILE) $(MOUNT_DIR)
 	sudo mkdir -p $(MOUNT_DIR)/{bin,sbin,etc,dev,proc,sys,tmp,home,lib,usr,var,mnt}
+
+	@echo "[TZ] Building timezone info..."
+	mkdir -p $(OUT_DIR_TZ)
+	zic -d $(OUT_DIR_TZ) $(TZSRC)/{africa,antarctica,asia,australasia,backward,backzone,etcetera,europe,northamerica,southamerica}
+
+	@echo "[TZ] Copying to rootfs..."
+	sudo mkdir -p $(MOUNT_DIR)/$(ZONE_INFO_OUT)
+	sudo cp -a $(OUT_DIR_TZ)/* $(MOUNT_DIR)/$(ZONE_INFO_OUT)
 
 	@echo "[Copy] Updating only changed files..."
 	@find $(ROOTFS) -type f | while read f; do \
@@ -80,9 +95,17 @@ build-ext4-image: $(KERNEL_OUTPUT)
 		fi; \
 	done
 
+	@echo "[Marker] Checking if firstboot marker is needed..."
+	@if [ "$$(cat .image_boot_flag)" = "1" ]; then \
+		echo "[Marker] Creating /etc/.firstboot"; \
+		sudo touch $(MOUNT_DIR)/etc/.firstboot; \
+	fi
+
 	sync
 	sudo umount $(MOUNT_DIR)
+	@rm -f .image_boot_flag
 	@echo "[Done] ext4 image updated."
+
 
 build-iso:
 	@echo "[ISO] Generating bootable ISO..."
@@ -141,5 +164,15 @@ init:
 	cp target/$(BUILD_TARGET)/init $(INIT_OUT_DIR)/
 	chmod u+s $(INIT_OUT_DIR)/init
 	@echo "[✓] init built and copied to $(INIT_OUT_DIR)/"
+
+timezone:
+	@echo "[TZ] Building timezone info..."
+	mkdir -p $(OUT_DIR_TZ)
+
+	zic -d $(OUT_DIR_TZ) $(TZSRC)/{africa,antarctica,asia,australasia,backward,backzone,etcetera,europe,northamerica,southamerica}
+
+	@echo "[TZ] Copying to rootfs..."
+	mkdir -p $(MOUNT_DIR)/$(ZONE_INFO_OUT)
+	cp -a $(OUT_DIR_TZ)/* $(MOUNT_DIR)/$(ZONE_INFO_OUT)
 
 .PHONY: all clean build-rootfs build-initramfs build-iso run-qemu

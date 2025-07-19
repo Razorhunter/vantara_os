@@ -1,3 +1,5 @@
+mod setup;
+
 use std::fs::{create_dir_all, File};
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -10,8 +12,9 @@ fn main() {
     safe_println(format_args!("[BOOT] INIT Start"));
     create_dev_node();
     mount_ext4();
+    setup::setup_firstboot();
     load_enable_services();
-    // clear_screen();
+    clear_screen();
     spawn_app();
     loop {}
 }
@@ -41,6 +44,7 @@ fn create_dev_node() {
     let _ = create_dir_all("/dev");
     let _ = create_dir_all("/mnt");
     let _ = create_dir_all("/run");
+    let _ = create_dir_all("/usr");
     let _ = create_dir_all("/etc/service/available");
     let _ = create_dir_all("/etc/service/enabled");
 
