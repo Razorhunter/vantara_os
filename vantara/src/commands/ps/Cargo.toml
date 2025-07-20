@@ -1,0 +1,12 @@
+[package]
+name = "ps"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hafifi"]
+description = "Vantara System OS ps module"
+license = "MIT"
+
+[dependencies]
+chrono = "0.4"
+libc = "0.2"
+vantara = { path = "../../../" }
