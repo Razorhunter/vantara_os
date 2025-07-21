@@ -276,4 +276,22 @@ impl ServiceManager {
             safe_eprintln(format_args!("Service '{}' not found", name));
         }
     }
+
+    pub fn reap_children() {
+        use nix::sys::wait::{waitpid, WaitPidFlag, WaitStatus};
+        loop {
+            match waitpid(None, Some(WaitPidFlag::WNOHANG)) {
+                Ok(WaitStatus::Exited(pid, status)) => {
+                    println!("[REAP] Process {} exited with {}", pid, status);
+                }
+                Ok(WaitStatus::Signaled(pid, sig, _)) => {
+                    println!("[REAP] Process {} killed by signal {}", pid, sig);
+                }
+                Ok(WaitStatus::StillAlive) => break,
+                Ok(_) => {}
+                Err(_) => break,
+            }
+        }
+    }
+
 }

@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 vantara = { path = "../../" }
 systemd = { path = "../systemd" }
+libc = "0.2"

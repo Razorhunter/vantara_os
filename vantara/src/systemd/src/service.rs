@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 use std::ffi::CString;
-use nix::unistd::{fork, ForkResult, execv, Pid};
+use nix::unistd::{fork, ForkResult, execv, Pid, setsid};
 use crate::{safe_println, safe_eprintln, get_system_timezone};
 use std::os::unix::fs::symlink;
 use nix::sys::wait::{waitpid, WaitPidFlag};
@@ -73,21 +73,31 @@ impl Service {
     pub fn start(&mut self) {
         match unsafe { fork() } {
             Ok(ForkResult::Parent { child }) => {
-                safe_println(format_args!("[INIT] Started service {} with PID {}", self.name, child));
+                safe_println(format_args!(
+                    "[INIT] Started service {} with PID {}",
+                    self.name, child
+                ));
                 self.pid = Some(child);
                 self.start_time = Some(SystemTime::now());
                 self.stop_time = None;
             }
             Ok(ForkResult::Child) => {
                 let exec_path = CString::new(self.exec.clone()).unwrap();
-                let args = [exec_path.clone()];
+                let argv0 = CString::new(self.name.clone()).unwrap();
+                let args = vec![argv0];
+
+                let _ = setsid();
+
                 execv(&exec_path, &args).unwrap_or_else(|e| {
-                    safe_eprintln(format_args!("[INIT] Failed to exec {:?}: {}", args, e));
-                    std::process::exit(1); // <-- ini penting
+                    safe_eprintln(format_args!("[INIT] Failed to exec {:?}: {}", self.exec, e));
+                    std::process::exit(1);
                 });
             }
             Err(err) => {
-                safe_eprintln(format_args!("[INIT] Failed to create service for {}: {}", self.name, err));
+                safe_eprintln(format_args!(
+                    "[INIT] Failed to create service for {}: {}",
+                    self.name, err
+                ));
             }
         }
     }
