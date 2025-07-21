@@ -7,6 +7,8 @@ description = "Vantara System OS ps module"
 license = "MIT"
 
 [dependencies]
+users = "0.11"
 chrono = "0.4"
-libc = "0.2"
+procfs = "0.17.0"
+rayon = "1.8"
 vantara = { path = "../../../" }
