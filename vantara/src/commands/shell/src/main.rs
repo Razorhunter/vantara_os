@@ -1,3 +1,5 @@
+mod kill;
+
 use dirs::home_dir;
 use rustyline::{Editor, Helper, CompletionType, Config, Context};
 use rustyline::completion::{Completer, Pair};
@@ -16,8 +18,6 @@ use std::fmt::Write as _;
 use std::process::{exit};
 use std::os::unix::net::UnixStream;
 use std::io::Read;
-use nix::sys::signal::{kill, Signal};
-use nix::unistd::Pid;
 
 const DEFAULT_SOCKET_PATH: &str = "/run/systemd.sock";
 
@@ -189,15 +189,21 @@ fn main() {
                         }
                     },
                     "kill" => {
-                        if let Some(arg) = parts.next() {
-                            match arg.parse::<i32>() {
-                                Ok(pid) => {
-                                    kill_process(pid);
-                                }
-                                Err(_) => safe_eprintln(format_args!("Invalid pid '{}'", arg))
+                        let first = parts.next();
+                        let second = parts.next();
+
+                        match (first, second) {
+                            (Some(signal_or_pid), Some(pid_str)) => {
+                                // Dua argumen: anggap pertama = signal, kedua = PID
+                                crate::kill::kill_process(signal_or_pid, pid_str);
                             }
-                        } else {
-                            safe_eprintln(format_args!("Missing PID for kill command"));
+                            (Some(pid_str), None) => {
+                                // Satu argumen sahaja: anggap default signal (SIGTERM)
+                                crate::kill::kill_process("SIGTERM", pid_str);
+                            }
+                            _ => {
+                                safe_eprintln(format_args!("Usage: kill [-SIGNAL] <PID>"));
+                            }
                         }
                     },
                     _ => {
@@ -383,15 +389,4 @@ fn load_profile(path: &str) -> HashMap<String, String> {
         }
     }
     map
-}
-
-fn kill_process(pid: i32) {
-    let pid = Pid::from_raw(pid);
-
-    match kill(pid, Signal::SIGTERM) {
-        Ok(_) => safe_println(format_args!("Signal sent to PID '{}'", pid)),
-        Err(err) => {
-            safe_eprintln(format_args!("Failed to send signal to '{}': {}", pid, err));
-        }
-    }
 }
