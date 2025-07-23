@@ -16,6 +16,8 @@ use std::fmt::Write as _;
 use std::process::{exit};
 use std::os::unix::net::UnixStream;
 use std::io::Read;
+use nix::sys::signal::{kill, Signal};
+use nix::unistd::Pid;
 
 const DEFAULT_SOCKET_PATH: &str = "/run/systemd.sock";
 
@@ -184,6 +186,18 @@ fn main() {
                                     "Usage:\n  service list\n  service <name> <status|start|stop|restart|enable|disable>"
                                 ));
                             }
+                        }
+                    },
+                    "kill" => {
+                        if let Some(arg) = parts.next() {
+                            match arg.parse::<i32>() {
+                                Ok(pid) => {
+                                    kill_process(pid);
+                                }
+                                Err(_) => safe_eprintln(format_args!("Invalid pid '{}'", arg))
+                            }
+                        } else {
+                            safe_eprintln(format_args!("Missing PID for kill command"));
                         }
                     },
                     _ => {
@@ -369,4 +383,15 @@ fn load_profile(path: &str) -> HashMap<String, String> {
         }
     }
     map
+}
+
+fn kill_process(pid: i32) {
+    let pid = Pid::from_raw(pid);
+
+    match kill(pid, Signal::SIGTERM) {
+        Ok(_) => safe_println(format_args!("Signal sent to PID '{}'", pid)),
+        Err(err) => {
+            safe_eprintln(format_args!("Failed to send signal to '{}': {}", pid, err));
+        }
+    }
 }
