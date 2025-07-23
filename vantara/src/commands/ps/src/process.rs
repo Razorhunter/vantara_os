@@ -64,11 +64,26 @@ pub fn get_processes(args: &Options) -> Vec<ProcInfo> {
             };
 
             let cmdline = p.cmdline().ok().unwrap_or_default().join(" ");
-            let cmd = if cmdline.is_empty() {
+            let mut cmd = if cmdline.is_empty() {
                 stat.comm.clone()
             } else {
                 cmdline
             };
+
+            if args.show_all {
+                if let Ok(env) = p.environ() {
+                    let joined_env = env
+                        .into_iter()
+                        .filter_map(|(k, v)| {
+                            let key = k.to_str()?;
+                            let val = v.to_str()?;
+                            Some(format!("{}={}", key, val))
+                        })
+                        .collect::<Vec<String>>()
+                        .join(" ");
+                    cmd = format!("{} {}", joined_env, cmd);
+                }
+            }
 
             let total_time = stat.utime + stat.stime;
             let ticks_per_second = procfs::ticks_per_second();
