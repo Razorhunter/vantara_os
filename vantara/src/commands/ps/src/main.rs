@@ -34,6 +34,7 @@ fn print_usage() {
     safe_println(format_args!("     x           Show process without TTY(daemon / background)"));
     safe_println(format_args!("     e           Show all environment variable in CMD column"));
     safe_println(format_args!("     o           Custom input format (e.g, ps -o pid,cmd)"));
+    safe_println(format_args!("     t           Show as tree-view"));
     safe_println(format_args!("     --help      Show help"));
     safe_println(format_args!("     --version   Show version"));
 }
