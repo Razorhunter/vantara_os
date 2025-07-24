@@ -1,6 +1,7 @@
 mod args;
 mod process;
 mod output;
+mod tree;
 
 use args::Options;
 use process::get_processes;
@@ -15,7 +16,13 @@ fn main() {
         _ if args.show_version => { print_version!(); std::process::exit(0); }
         _ => {
             let processes = get_processes(&args);
-            print_processes(&args, &processes);
+
+            if args.show_tree {
+                let tree = tree::build_process_tree(&processes);
+                tree::print_process_tree(&tree, 1, 0, "".to_string(), true);
+            } else {
+                print_processes(&args, &processes);
+            }
         }
     }
 }
@@ -27,6 +34,7 @@ fn print_usage() {
     safe_println(format_args!("     x           Show process without TTY(daemon / background)"));
     safe_println(format_args!("     e           Show all environment variable in CMD column"));
     safe_println(format_args!("     o           Custom input format (e.g, ps -o pid,cmd)"));
+    safe_println(format_args!("     t           Show as tree-view"));
     safe_println(format_args!("     --help      Show help"));
     safe_println(format_args!("     --version   Show version"));
 }
