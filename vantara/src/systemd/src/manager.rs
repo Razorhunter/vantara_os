@@ -1,4 +1,4 @@
-use crate::{safe_println, safe_eprintln};
+use vantara::{safe_println, safe_eprintln};
 use crate::service::Service;
 use std::collections::HashMap;
 use std::fs;

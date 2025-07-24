@@ -1,3 +1,5 @@
+mod kill;
+
 use dirs::home_dir;
 use rustyline::{Editor, Helper, CompletionType, Config, Context};
 use rustyline::completion::{Completer, Pair};
@@ -183,6 +185,24 @@ fn main() {
                                 safe_eprintln(format_args!(
                                     "Usage:\n  service list\n  service <name> <status|start|stop|restart|enable|disable>"
                                 ));
+                            }
+                        }
+                    },
+                    "kill" => {
+                        let first = parts.next();
+                        let second = parts.next();
+
+                        match (first, second) {
+                            (Some(signal_or_pid), Some(pid_str)) => {
+                                // Dua argumen: anggap pertama = signal, kedua = PID
+                                crate::kill::kill_process(signal_or_pid, pid_str);
+                            }
+                            (Some(pid_str), None) => {
+                                // Satu argumen sahaja: anggap default signal (SIGTERM)
+                                crate::kill::kill_process("SIGTERM", pid_str);
+                            }
+                            _ => {
+                                safe_eprintln(format_args!("Usage: kill [-SIGNAL] <PID>"));
                             }
                         }
                     },
