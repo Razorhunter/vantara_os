@@ -141,12 +141,12 @@ fn human_readable(bytes: u64) -> String {
 fn print_usage() {
     safe_println(format_args!("Usage: {} [OPTIONS]", package_name!()));
     safe_println(format_args!("Options:"));
-    safe_println(format_args!("     -b               Show output in bytes"));
-    safe_println(format_args!("     -k               Show output in kilobytes (default)"));
-    safe_println(format_args!("     -m               Show output in megabytes"));
-    safe_println(format_args!("     -g               Show output in gigabytes"));
-    safe_println(format_args!("     -h               Show output in human-readable format"));
-    safe_println(format_args!("     -t               Show total memory line"));
+    safe_println(format_args!("     -b              Show output in bytes"));
+    safe_println(format_args!("     -k              Show output in kilobytes (default)"));
+    safe_println(format_args!("     -m              Show output in megabytes"));
+    safe_println(format_args!("     -g              Show output in gigabytes"));
+    safe_println(format_args!("     -h              Show output in human-readable format"));
+    safe_println(format_args!("     -t              Show total memory line"));
     safe_println(format_args!("     --help          Show this help"));
     safe_println(format_args!("     --version       Show version"));
 }
