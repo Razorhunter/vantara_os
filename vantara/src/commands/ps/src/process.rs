@@ -9,6 +9,7 @@ use std::os::unix::fs::MetadataExt;
 #[derive(Debug)]
 pub struct ProcInfo {
     pub pid: i32,
+    pub ppid: i32,
     pub user: String,
     pub stat: char,
     pub vsz: u64,
@@ -94,6 +95,7 @@ pub fn get_processes(args: &Options) -> Vec<ProcInfo> {
 
             Some(ProcInfo {
                 pid: stat.pid,
+                ppid: stat.ppid,
                 user,
                 stat: stat.state,
                 vsz: stat.vsize / 1024,
