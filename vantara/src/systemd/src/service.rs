@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 use std::ffi::CString;
 use nix::unistd::{fork, ForkResult, execv, Pid, setsid};
-use crate::{safe_println, safe_eprintln, get_system_timezone};
+use vantara::{safe_println, safe_eprintln, get_system_timezone};
 use std::os::unix::fs::symlink;
 use nix::sys::wait::{waitpid, WaitPidFlag};
 use std::time::SystemTime;

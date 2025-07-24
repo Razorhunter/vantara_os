@@ -1125,7 +1125,6 @@ dependencies = [
  "nix",
  "procfs",
  "rustyline",
- "systemd",
  "vantara",
 ]
 
@@ -1196,6 +1195,7 @@ dependencies = [
  "chrono-tz",
  "glob",
  "nix",
+ "vantara",
 ]
 
 [[package]]
