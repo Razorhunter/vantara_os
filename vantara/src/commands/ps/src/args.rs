@@ -9,6 +9,7 @@ pub struct Options {
     pub custom_fields: Option<Vec<String>>, // -o pid,user,...
     pub show_version: bool,
     pub show_usage: bool,
+    pub show_tree: bool, //Show as tree view
 }
 
 impl Options {
@@ -20,6 +21,7 @@ impl Options {
         let mut custom_fields = None;
         let mut show_version = false;
         let mut show_usage = false;
+        let mut show_tree = false;
 
         let mut args = env::args().skip(1).peekable();
         while let Some(arg) = args.next() {
@@ -37,7 +39,8 @@ impl Options {
                                 if let Some(fields) = args.next() {
                                     custom_fields = Some(fields.split(',').map(|s| s.to_string()).collect());
                                 }
-                            }
+                            },
+                            't' => show_tree = true,
                             _ => {}
                         }
                     }
@@ -59,6 +62,7 @@ impl Options {
             custom_fields,
             show_version,
             show_usage,
+            show_tree
         }
     }
 }

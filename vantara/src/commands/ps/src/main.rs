@@ -1,6 +1,7 @@
 mod args;
 mod process;
 mod output;
+mod tree;
 
 use args::Options;
 use process::get_processes;
@@ -15,7 +16,13 @@ fn main() {
         _ if args.show_version => { print_version!(); std::process::exit(0); }
         _ => {
             let processes = get_processes(&args);
-            print_processes(&args, &processes);
+
+            if args.show_tree {
+                let tree = tree::build_process_tree(&processes);
+                tree::print_process_tree(&tree, 1, 0, "".to_string(), true);
+            } else {
+                print_processes(&args, &processes);
+            }
         }
     }
 }
