@@ -1122,8 +1122,9 @@ name = "shell"
 version = "0.1.0"
 dependencies = [
  "dirs",
+ "nix",
+ "procfs",
  "rustyline",
- "systemd",
  "vantara",
 ]
 
@@ -1194,6 +1195,7 @@ dependencies = [
  "chrono-tz",
  "glob",
  "nix",
+ "vantara",
 ]
 
 [[package]]
