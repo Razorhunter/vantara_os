@@ -635,6 +635,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "hex",
+ "libc",
  "rand",
  "rpassword",
  "sha2",
@@ -1377,6 +1378,7 @@ dependencies = [
  "chrono-tz",
  "glob",
  "nix",
+ "termios",
 ]
 
 [[package]]
