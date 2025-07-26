@@ -7,12 +7,5 @@ description = "Vantara System OS login module"
 license = "Apache-2.0 license"
 
 [dependencies]
-hex = "0.4.3"
-termios = "0.3.3"
-rpassword = "7.3.1"
-sha2 = "0.10"
-rand = "0.9.1"
-which = "8.0.0"
-chrono = "0.4"
-libc = "0.2"
 vantara = { path = "../../../" }
+vantarauth = { path = "../../auth" }

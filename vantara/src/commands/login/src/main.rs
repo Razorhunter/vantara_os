@@ -1,10 +1,7 @@
-mod auth;
-mod modules;
-
-use modules::session_log::log_logout;
-use auth::{run_login, AuthContext};
-use modules::{auth_unix::AuthUnix, session_logger::SessionLogger, account_expiry::AccountExpiry};
-use crate::modules::passwd::get_passwd_entry;
+use vantarauth::modules::session_log::log_logout;
+use vantarauth::auth::{self, run_login, AuthContext};
+use vantarauth::modules::{auth_unix::AuthUnix, session_logger::SessionLogger, account_expiry::AccountExpiry};
+use vantarauth::modules::passwd::get_passwd_entry;
 use std::io::{self, stdin, Write};
 use std::process::Command;
 use vantara::{safe_print, safe_println, safe_eprintln, read_password};
