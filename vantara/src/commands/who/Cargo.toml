@@ -1,0 +1,10 @@
+[package]
+name = "who"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hafifi"]
+description = "Vantara System OS who module"
+license = "Apache-2.0 license"
+
+[dependencies]
+vantara = { path = "../../../" }

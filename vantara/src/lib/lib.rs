@@ -14,8 +14,11 @@ macro_rules! package_name {
 #[macro_export]
 macro_rules! print_version {
     () => {
-        println!("Package name: {}", env!("CARGO_PKG_NAME"));
-        println!("Version: v{}", env!("CARGO_PKG_VERSION"));
+        println!("   Package name: {}", env!("CARGO_PKG_NAME"));
+        println!("    Description: {}", env!("CARGO_PKG_DESCRIPTION"));
+        println!("        Version: v{}", env!("CARGO_PKG_VERSION"));
+        println!("        License: {}", env!("CARGO_PKG_LICENSE"));
+        println!("        Authors: {}", env!("CARGO_PKG_AUTHORS"));
     };
 }
 
@@ -26,9 +29,9 @@ pub fn show_boot_banner() {
      \ \ / / _` | '_ \| __/ _` | '__/ _` |
       \ V / (_| | | | | || (_| | | | (_| |
        \_/ \__,_|_| |_|\__\__,_|_|  \__,_|
-             Operating System             
+               Operating System           
     "#));
-    safe_println(format_args!("        Welcome to the VanOS {}        \n", env!("CARGO_PKG_VERSION")));
+    safe_println(format_args!("          Welcome to the VanOS {}        \n", env!("CARGO_PKG_VERSION")));
 }
 
 pub fn safe_println(args: std::fmt::Arguments) {
