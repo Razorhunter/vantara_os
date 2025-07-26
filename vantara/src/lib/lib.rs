@@ -107,3 +107,29 @@ pub fn get_system_timezone() -> Tz {
     }
     chrono_tz::UTC
 }
+
+pub fn read_password() -> String {
+    use std::io::{stdin, stdout};
+    use std::os::unix::io::AsRawFd;
+    use termios::*;
+
+    let stdin = stdin();
+    let fd = stdin.as_raw_fd();
+
+    let mut term = Termios::from_fd(fd).unwrap();
+    let original = term.clone();
+
+    // padam echo
+    term.c_lflag &= !ECHO;
+    tcsetattr(fd, TCSANOW, &term).unwrap();
+
+    let mut password = String::new();
+    stdin.read_line(&mut password).unwrap();
+
+    // kembalikan echo
+    tcsetattr(fd, TCSANOW, &original).unwrap();
+    println!(); // Print a newline after password input
+
+    stdout().flush().unwrap(); // Ensure the output is flushed
+    password.trim().to_string() // Remove any trailing newline or spaces
+}
