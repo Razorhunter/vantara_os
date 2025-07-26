@@ -1,18 +1,19 @@
 mod auth;
 mod modules;
 
+use modules::session_log::log_logout;
 use auth::{run_login, AuthContext};
-use modules::{auth_unix::AuthUnix, session_logger::SessionLogger};
-use crate::modules::passwd::{PasswdEntry, get_passwd_entry};
+use modules::{auth_unix::AuthUnix, session_logger::SessionLogger, account_expiry::AccountExpiry};
+use crate::modules::passwd::get_passwd_entry;
 use std::io::{self, stdin, Write};
 use std::process::Command;
-use vantara::{safe_print, safe_println, safe_eprintln, read_password };
-use libc::{setuid, setgid};
+use vantara::{safe_print, safe_println, safe_eprintln, read_password};
 
 fn main() {
     let modules: Vec<Box<dyn auth::AuthModule>> = vec![
         Box::new(AuthUnix::new()),
         Box::new(SessionLogger::new()),
+        Box::new(AccountExpiry::new()),
     ];
 
     loop {
@@ -34,36 +35,16 @@ fn main() {
 
         if run_login(&modules, &mut ctx) {
             if let Some(user) = get_passwd_entry(&ctx.username) {
-                spawn_shell_as_user(&user);
+                let _ = Command::new(&user.shell)
+                    .spawn()
+                    .unwrap()
+                    .wait();
             } else {
                 safe_eprintln(format_args!("User entry not found"));
             }
         } else {
             safe_println(format_args!("Please try again"));
         }
+        log_logout(&ctx.username);
     }
-}
-
-fn spawn_shell_as_user(user: &PasswdEntry) {
-    unsafe {
-        if setgid(user.gid) != 0 {
-            safe_eprintln(format_args!("Failed to setgid to {}", user.gid));
-        }
-        if setuid(user.uid) != 0 {
-            safe_eprintln(format_args!("Failed to setuid to {}", user.uid));
-        }
-    }
-
-    std::env::set_var("HOME", &user.home);
-    std::env::set_var("USER", &user.username);
-    std::env::set_var("SHELL", &user.shell);
-
-    std::env::set_current_dir(&user.home).unwrap_or_else(|_| {
-        safe_eprintln(format_args!("Failed to set home dir to {}", &user.home));
-    });
-
-    let _ = Command::new(&user.shell)
-        .spawn()
-        .unwrap()
-        .wait();
 }

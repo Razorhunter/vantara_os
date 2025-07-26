@@ -1,4 +1,5 @@
 use crate::auth::{AuthModule, AuthContext, AuthResult};
+use crate::modules::session_log::log_login;
 
 pub struct SessionLogger {}
 
@@ -10,18 +11,15 @@ impl SessionLogger {
 
 impl AuthModule for SessionLogger {
     fn auth(&self, _ctx: &mut AuthContext) -> AuthResult {
-        // Modul ini tak buat apa dalam fasa auth.
         AuthResult::Success
     }
 
     fn account(&self, _ctx: &mut AuthContext) -> AuthResult {
-        // Modul ini tak buat apa dalam fasa account.
         AuthResult::Success
     }
 
     fn session(&self, ctx: &mut AuthContext) -> AuthResult {
-        // Log session, contohnya ke file atau stdout.
-        println!("Logging session for user: {}", ctx.username);
+        log_login(&ctx.username);
         AuthResult::Success
     }
 }
