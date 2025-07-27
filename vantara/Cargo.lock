@@ -1383,6 +1383,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "who"
+version = "0.1.0"
+dependencies = [
+ "vantarauth",
+]
+
+[[package]]
 name = "whoami"
 version = "0.1.0"
 dependencies = [
