@@ -1383,21 +1383,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "which"
-version = "8.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3fabb953106c3c8eea8306e4393700d7657561cb43122571b172bbfb7c7ba1d"
-dependencies = [
- "env_home",
- "rustix 1.0.7",
- "winsafe",
-]
-
-[[package]]
 name = "who"
 version = "0.1.0"
 dependencies = [
- "vantara",
+ "vantarauth",
 ]
 
 [[package]]
