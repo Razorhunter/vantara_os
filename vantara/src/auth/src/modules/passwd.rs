@@ -1,5 +1,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::fs::OpenOptions;
+use std::io::Write;
 
 pub struct PasswdEntry {
     pub username: String,
@@ -32,4 +34,25 @@ pub fn get_passwd_entry(username: &str) -> Option<PasswdEntry> {
         }
     }
     None
+}
+
+pub fn add_user_to_passwd_file(username: &str, fullname: &str, uid: u32, gid: u32) -> std::io::Result<()> {
+    let home_dir = format!("/root");
+    let shell = "/bin/shell";
+
+    let entry = format!(
+        "{}:x:{}:{}:{}:{}:{}\n",
+        username, uid, gid, fullname, home_dir, shell
+    );
+
+    let mut file = OpenOptions::new()
+        .append(true)
+        .create(true)
+        .open(DEFAULT_PASSWD_FILE)?;
+
+    writeln!(file, "{}", entry)?;
+
+    std::fs::create_dir_all(home_dir)?;
+
+    Ok(())
 }

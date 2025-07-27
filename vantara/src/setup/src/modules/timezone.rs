@@ -1,28 +1,12 @@
 use std::os::unix::fs as unix_fs;
-use std::path::Path;
 use std::fs;
 use std::io::{self, Write};
 use vantara::{safe_print, safe_eprintln, safe_println};
 
-const DEFAULT_FIRSTBOOT_PATH: &str = "/etc/.firstboot";
 const DEFAULT_LOCALTIME_PATH: &str = "/etc/localtime";
 const DEFAULT_TIMEZONE_PATH: &str = "/etc/timezone";
 
-pub fn setup_firstboot() {
-    if Path::new(DEFAULT_FIRSTBOOT_PATH).exists() {
-        set_timezone_interactive();
-
-        //TODO: keyboard layout
-
-        //TODO: set hostname
-
-        //TODO: network config
-
-        let _ = fs::remove_file(DEFAULT_FIRSTBOOT_PATH);
-    }
-}
-
-fn set_timezone_interactive() {
+pub fn set_timezone_interactive() {
     loop {
         safe_print(format_args!("Set timezone (e.g., Asia/Kuala_Lumpur): "));
         io::stdout().flush().unwrap();
@@ -51,7 +35,7 @@ fn set_timezone_interactive() {
                     if let Err(e) = fs::write(DEFAULT_TIMEZONE_PATH, format!("{}\n", timezone_str)) {
                         safe_eprintln(format_args!("Failed to write to '{}': {}", DEFAULT_TIMEZONE_PATH, e));
                     }
-                    safe_print(format_args!("Successfully set time zone to '{}'", timezone_str));
+                    safe_println(format_args!("Successfully set time zone to '{}'", timezone_str));
                     break; 
                 },
                 Err(e) => safe_eprintln(format_args!("Failed to set time zone: {}", e)),

@@ -1,6 +1,10 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use sha2::{Sha512, Digest};
+use std::fs::OpenOptions;
+use std::io::Write;
+use rand::Rng;
+use rand::distr::Alphanumeric;
 
 pub struct ShadowEntry {
     pub username: String,
@@ -36,4 +40,33 @@ pub fn hash_password_with_salt(salt: &str, password: &str) -> String {
     hasher.update(password.as_bytes());
     let result = hasher.finalize();
     hex::encode(result)
+}
+
+pub fn generate_salt(len: usize) -> String {
+    rand::rng()
+    .sample_iter(&Alphanumeric)
+    .take(len)
+    .map(char::from)
+    .collect()
+}
+
+pub fn add_user_to_shadow_file(username: &str, password: &str) -> std::io::Result<()> {
+    let salt = generate_salt(16);
+    let hash = hash_password_with_salt(&salt, password);
+
+    let entry = format!(
+        "{}:$6${}${}:::::::\n",
+        username,
+        salt,
+        hash
+    );
+
+    let mut file = OpenOptions::new()
+        .append(true)
+        .create(true)
+        .open(DEFAULT_SHADOW_FILE)?;
+
+    writeln!(file, "{}", entry)?;
+
+    Ok(())
 }

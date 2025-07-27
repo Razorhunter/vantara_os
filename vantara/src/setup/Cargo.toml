@@ -1,5 +1,5 @@
 [package]
-name = "vantarauth"
+name = "vantara-setup"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,9 +7,5 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
-chrono = "0.4"
-libc = "0.2"
-sha2 = "0.10"
-rand = "0.9.1"
-hex = "0.4.3"
+vantarauth = { path = "../auth" }
 vantara = { path = "../../" }

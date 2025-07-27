@@ -19,6 +19,7 @@ members = [
     "src/commands/*",
     "src/systemd",
     "src/auth",
+    "src/setup",
 ]
 
 [profile.release]

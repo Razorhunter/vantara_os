@@ -1,5 +1,3 @@
-mod setup;
-
 use std::fs::{create_dir_all, File};
 use std::io::{Write, stdout};
 use std::sync::Arc;
@@ -16,11 +14,10 @@ fn main() {
 
     create_directories_and_dev_nodes();
     mount_all_filesystems();
-
     clear_screen();
-
-    setup::setup_firstboot();
+    vantara_setup::setup::setup_firstboot();
     load_enable_services();
+    clear_screen();
     show_boot_banner();
     spawn_login();
 
@@ -108,7 +105,6 @@ fn spawn_login() {
             libc::execve(path.as_ptr(), args.as_ptr(), envp.as_ptr());
             libc::_exit(1); // hanya dipanggil kalau execve gagal
         } else if pid > 0 {
-            let mut status = 0;
             libc::waitpid(pid, ptr::null_mut(), 0); // Tunggu login tamat
         } else {
             safe_eprintln(format_args!("[ERR] Failed to fork login process."));
