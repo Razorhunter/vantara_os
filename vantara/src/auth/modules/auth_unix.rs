@@ -1,8 +1,9 @@
 use crate::auth::{AuthModule, AuthContext, AuthResult};
 use crate::auth::modules::passwd::get_passwd_entry;
 use crate::auth::modules::shadow::{get_shadow_entry, hash_password_with_salt};
+use crate::auth::modules::session_log::get_last_login;
 use libc::{setuid, setgid};
-use crate::common::safe_eprintln;
+use crate::common::{safe_eprintln, safe_println};
 
 pub struct AuthUnix {}
 
@@ -19,6 +20,9 @@ impl AuthModule for AuthUnix {
                 Some(shadow) => {
                     let input_hash = hash_password_with_salt(&shadow.salt, &ctx.password);
                     if input_hash == shadow.hash {
+                        if let Some(last) = get_last_login(&ctx.username) {
+                            safe_println(format_args!("Last login: {}", last));
+                        }
                         AuthResult::Success
                     } else {
                         AuthResult::Failure("Invalid password".into())
