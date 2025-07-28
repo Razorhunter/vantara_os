@@ -7,4 +7,4 @@ description = "Vantara System OS who module"
 license = "Apache-2.0 license"
 
 [dependencies]
-vantarauth = { path = "../../auth" }
+vantara = { path = "../../../" }

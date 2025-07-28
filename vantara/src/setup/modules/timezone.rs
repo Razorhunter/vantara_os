@@ -1,7 +1,7 @@
 use std::os::unix::fs as unix_fs;
 use std::fs;
 use std::io::{self, Write};
-use vantara::{safe_print, safe_eprintln, safe_println};
+use crate::setup::{safe_print, safe_eprintln, safe_println};
 
 const DEFAULT_LOCALTIME_PATH: &str = "/etc/localtime";
 const DEFAULT_TIMEZONE_PATH: &str = "/etc/timezone";

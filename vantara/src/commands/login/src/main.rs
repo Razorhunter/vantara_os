@@ -1,7 +1,7 @@
-use vantarauth::modules::session_log::log_logout;
-use vantarauth::auth::{self, run_login, AuthContext};
-use vantarauth::modules::{auth_unix::AuthUnix, session_logger::SessionLogger, account_expiry::AccountExpiry};
-use vantarauth::modules::passwd::get_passwd_entry;
+use vantara::auth::modules::session_log::log_logout;
+use vantara::auth::{self, run_login, AuthContext};
+use vantara::auth::modules::{auth_unix::AuthUnix, session_logger::SessionLogger, account_expiry::AccountExpiry};
+use vantara::auth::modules::passwd::get_passwd_entry;
 use std::io::{self, stdin, Write};
 use std::process::Command;
 use vantara::{safe_print, safe_println, safe_eprintln, read_password};

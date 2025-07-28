@@ -6,7 +6,7 @@ use std::ptr;
 use libc;
 
 use vantara::{safe_println, safe_eprintln, show_boot_banner};
-use systemd::manager::ServiceManager;
+use vantara::systemd::manager::ServiceManager;
 
 fn main() {
     clear_screen();
@@ -15,7 +15,7 @@ fn main() {
     create_directories_and_dev_nodes();
     mount_all_filesystems();
     clear_screen();
-    vantara_setup::setup::setup_firstboot();
+    vantara::setup::setup_firstboot();
     load_enable_services();
     clear_screen();
     show_boot_banner();

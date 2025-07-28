@@ -6,7 +6,7 @@ use libc::{isatty, ttyname};
 use std::ffi::CStr;
 use std::fs::File;
 use std::io::{BufReader, BufRead};
-use vantara::{safe_println};
+use crate::auth::{safe_println};
 
 const DEFAULT_USER_LOG_PATH: &str = "/var/.session.log";
 

@@ -1,5 +1,5 @@
-use vantara::{safe_print, safe_println, read_password};
 use std::io::{self, Write};
+use crate::common::{safe_print, read_password, safe_println};
 
 pub fn add_root_user() {
     safe_print(format_args!("Set Username (default: root): "));
@@ -15,9 +15,9 @@ pub fn add_root_user() {
     let uid = 0;
     let gid = 0;
 
-    let _ = vantarauth::modules::group::add_user_to_group_file(&username, gid);
-    let _ = vantarauth::modules::passwd::add_user_to_passwd_file(&username, "Administrator", uid, gid);
-    let _ = vantarauth::modules::shadow::add_user_to_shadow_file(&username, &password);
+    let _ = crate::auth::modules::group::add_user_to_group_file(&username, gid);
+    let _ = crate::auth::modules::passwd::add_user_to_passwd_file(&username, "Administrator", uid, gid);
+    let _ = crate::auth::modules::shadow::add_user_to_shadow_file(&username, &password);
 
     safe_println(format_args!("{} account had been successfuly created. Proceed to login now", username));
     println!();

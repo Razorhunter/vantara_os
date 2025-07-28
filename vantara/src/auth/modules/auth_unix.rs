@@ -1,8 +1,8 @@
 use crate::auth::{AuthModule, AuthContext, AuthResult};
-use crate::modules::passwd::get_passwd_entry;
-use crate::modules::shadow::{get_shadow_entry, hash_password_with_salt};
+use crate::auth::modules::passwd::get_passwd_entry;
+use crate::auth::modules::shadow::{get_shadow_entry, hash_password_with_salt};
 use libc::{setuid, setgid};
-use vantara::safe_eprintln;
+use crate::common::safe_eprintln;
 
 pub struct AuthUnix {}
 

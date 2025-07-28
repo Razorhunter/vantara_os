@@ -2,12 +2,12 @@ use std::fs;
 use std::path::Path;
 use std::ffi::CString;
 use nix::unistd::{fork, ForkResult, execv, Pid, setsid};
-use vantara::{safe_println, safe_eprintln, get_system_timezone};
 use std::os::unix::fs::symlink;
 use nix::sys::wait::{waitpid, WaitPidFlag};
 use std::time::SystemTime;
 use chrono::{DateTime, Local};
-use crate::manager::{DEFAULT_SERVICE_ENABLED_PATH};
+use crate::systemd::manager::{DEFAULT_SERVICE_ENABLED_PATH};
+use crate::common::{safe_eprintln, safe_println, get_system_timezone};
 
 #[derive(Debug)]
 #[derive(Clone)]

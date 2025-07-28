@@ -1,8 +1,8 @@
 use std::path::Path;
 use std::fs;
-use crate::modules::timezone::set_timezone_interactive;
-use crate::modules::rootuser::add_root_user;
-use vantara::show_boot_banner;
+use crate::setup::modules::timezone::set_timezone_interactive;
+use crate::setup::modules::rootuser::add_root_user;
+use crate::common::show_boot_banner;
 
 const DEFAULT_FIRSTBOOT_PATH: &str = "/etc/.firstboot";
 

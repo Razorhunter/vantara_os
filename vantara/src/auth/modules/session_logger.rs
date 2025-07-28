@@ -1,5 +1,5 @@
-use crate::auth::{AuthModule, AuthContext, AuthResult};
-use crate::modules::session_log::log_login;
+use crate::auth::auth::{AuthModule, AuthContext, AuthResult};
+use crate::auth::modules::session_log::log_login;
 
 pub struct SessionLogger {}
 

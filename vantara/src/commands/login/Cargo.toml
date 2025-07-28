@@ -8,4 +8,3 @@ license = "Apache-2.0 license"
 
 [dependencies]
 vantara = { path = "../../../" }
-vantarauth = { path = "../../auth" }

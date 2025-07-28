@@ -1,5 +1,4 @@
-use vantara::{safe_println, safe_eprintln};
-use crate::service::Service;
+use crate::systemd::service::Service;
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -8,6 +7,7 @@ use std::io::{Read, Write};
 use std::sync::{Mutex, Arc};
 use std::thread;
 use std::os::unix::fs::PermissionsExt;
+use crate::common::{safe_eprintln, safe_println};
 
 pub const DEFAULT_SERVICE_AVAILABLE_PATH: &str = "/etc/service/available";
 pub const DEFAULT_SERVICE_ENABLED_PATH: &str = "/etc/service/enabled";
