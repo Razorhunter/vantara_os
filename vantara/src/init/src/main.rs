@@ -3,6 +3,7 @@ use std::io::{Write, stdout};
 use std::sync::Arc;
 use std::ffi::CString;
 use std::ptr;
+use std::process::Command;
 use libc;
 
 use vantara::{safe_println, safe_eprintln, show_boot_banner};
@@ -110,4 +111,10 @@ fn spawn_login() {
             safe_eprintln(format_args!("[ERR] Failed to fork login process."));
         }
     }
+}
+
+fn spawn_gui() {
+    Command::new("/usr/bin/vantara-gui")
+        .spawn()
+        .expect("failed to exec vantara-gui");
 }
