@@ -2,7 +2,6 @@
 name = "vantara"
 version = "0.1.0"
 edition = "2021"
-build = "build.rs"
 
 [lib]
 path = "src/lib.rs"
@@ -22,7 +21,6 @@ hex = "0.4.3"
 members = [
     "src/commands/*",
     "src/init",
-    "src/gui",
 ]
 
 [profile.release]

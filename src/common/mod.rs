@@ -22,6 +22,11 @@ macro_rules! print_version {
     };
 }
 
+pub fn clear_screen() {
+    safe_println(format_args!("\x1B[2J\x1B[1;1H"));
+    let _ = std::io::stdout().flush();
+}
+
 pub fn show_boot_banner() {
     safe_println(format_args!("{}", r#"
     __     __          _                  
