@@ -53,7 +53,7 @@ pub fn sync_system_time_to_rtc() -> Result<(), String> {
     let fd = file.as_raw_fd();
 
     let request: i32 = RTC_SET_TIME as i32;
-    let result = unsafe { ioctl(fd, request, &rtc_time) };
+    let result = unsafe { ioctl(fd, request.try_into().unwrap(), &rtc_time) };
 
     if result != 0 {
         return Err(format!("Gagal set RTC: errno {}", result));

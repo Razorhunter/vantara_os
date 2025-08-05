@@ -11,13 +11,17 @@ ISO := iso
 INITRAMFS := build/initramfs.cpio.gz
 MUSL_TARGET := x86_64-unknown-linux-musl
 USERLAND := vantara
+GUI_USERLAND := vantara/src/gui
 MOUNT_DIR := build/mnt
 IMAGE_FILE := build/vantara.ext4
 IMAGE_SIZE := 4096
 CHECKSUM_DIR := build/.checksums
 OUT_DIR = ../$(ROOTFS)/bin
 INIT_OUT_DIR = ../$(ROOTFS)/sbin
+GUI_OUT_DIR = ../$(ROOTFS)/usr/bin
 BUILD_TARGET = $(MUSL_TARGET)/release
+GUI_BUILD_TARGET = release
+GUI_BIN = vantara/target/release/vantara-gui
 COMMANDS_DIR := vantara/src/commands
 PROJECTS := $(notdir $(wildcard $(COMMANDS_DIR)/*))
 TZSRC := tzdata2025b
@@ -38,7 +42,7 @@ copy-kernel:
 	@echo "[Copy] Kernel to $(KERNEL_OUTPUT)..."
 	cp $(KERNEL_DIR)/arch/x86/boot/bzImage $(KERNEL_OUTPUT)
 
-build-rootfs: $(PROJECTS) init
+build-rootfs: $(PROJECTS) init gui
 	@echo "[Copy] Installing to $(ROOTFS)..."
 
 	@echo "[Copy] Binary to $(ROOTFS)/bin..."
@@ -100,6 +104,8 @@ build-ext4-image: $(KERNEL_OUTPUT)
 		echo "[Marker] Creating /etc/.firstboot"; \
 		sudo touch $(MOUNT_DIR)/etc/.firstboot; \
 	fi
+
+	ldd $(GUI_BIN) | awk '{print $$3}' | grep '^/' | xargs -I{} sudo cp -v {} $(MOUNT_DIR)/lib/
 
 	sync
 	sudo umount $(MOUNT_DIR)
@@ -164,6 +170,15 @@ init:
 	cp target/$(BUILD_TARGET)/init $(INIT_OUT_DIR)/
 	chmod u+s $(INIT_OUT_DIR)/init
 	@echo "[✓] init built and copied to $(INIT_OUT_DIR)/"
+
+gui:
+	@echo "[*] Building vantara-gui..."
+	cd $(USERLAND)
+	cargo build --release -p vantara-gui
+	mkdir -p $(GUI_OUT_DIR)
+	cp target/$(GUI_BUILD_TARGET)/vantara-gui $(GUI_OUT_DIR)/
+	chmod u+s $(GUI_OUT_DIR)/vantara-gui
+	@echo "[✓] vantara-gui built and copied to $(GUI_OUT_DIR)/"
 
 timezone:
 	@echo "[TZ] Building timezone info..."

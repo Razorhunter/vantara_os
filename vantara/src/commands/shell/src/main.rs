@@ -312,58 +312,6 @@ fn run_service_command(cmd: &str, name: Option<&str>) {
             safe_eprintln(format_args!("Failed to connect to minisystemd: {}", e));
         }
     }
-    // let mut manager = ServiceManager::new();
-    // manager.load_services();
-
-    // match cmd {
-    //     "start" => {
-    //         if let Some(name) = service {
-    //             manager.start_service(name);
-    //         } else {
-    //             eprintln!("'start' requires a service name");
-    //         }
-    //     }
-    //     "stop" => {
-    //         if let Some(name) = service {
-    //             manager.stop_service(name);
-    //         } else {
-    //             eprintln!("'stop' requires a service name");
-    //         }
-    //     }
-    //     "restart" => {
-    //         if let Some(name) = service {
-    //             manager.stop_service(name);
-    //             manager.start_service(name);
-    //         } else {
-    //             eprintln!("'restart' requires a service name");
-    //         }
-    //     }
-    //     "enable" => {
-    //         if let Some(name) = service {
-    //             manager.enable_service(name);
-    //         } else {
-    //             eprintln!("'enable' requires a service name");
-    //         }
-    //     }
-    //     "disable" => {
-    //         if let Some(name) = service {
-    //             manager.disable_service(name);
-    //         } else {
-    //             eprintln!("'disable' requires a service name");
-    //         }
-    //     }
-    //     "status" => {
-    //         if let Some(name) = service {
-    //             manager.status_service(name);
-    //         } else {
-    //             eprintln!("'status' requires a service name");
-    //         }
-    //     }
-    //     "list" => {
-    //         manager.list_services();
-    //     }
-    //     _ => eprintln!("Unknown action '{}'", cmd),
-    // }
 }
 
 fn get_display_path(path: &Path) -> String {

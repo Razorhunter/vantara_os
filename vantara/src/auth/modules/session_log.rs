@@ -1,4 +1,5 @@
 use chrono::Local;
+use chrono::{NaiveDateTime};
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::os::unix::fs::MetadataExt;
@@ -104,6 +105,42 @@ pub fn print_logged_in_users() {
             session.username, session.tty, session.ip, session.time
         ));
     }
+}
+
+pub fn get_last_login(username: &str) -> Option<String> {
+    use std::fs::File;
+    use std::io::{BufRead, BufReader};
+
+    let file = File::open(DEFAULT_USER_LOG_PATH).ok()?;
+    let reader = BufReader::new(file);
+
+    let mut last_time_raw: Option<String> = None;
+
+    for line in reader.lines().flatten() {
+        if line.contains("[LOGIN]") && line.contains(&format!("user={}", username)) {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            for i in 0..parts.len() {
+                if parts[i].starts_with("time=") && i + 1 < parts.len() {
+                    let date_part = parts[i].strip_prefix("time=").unwrap_or("unknown");
+                    let time_part = parts[i + 1];
+                    let full = format!("{} {}", date_part, time_part);
+                    last_time_raw = Some(full);
+                }
+            }
+        }
+    }
+
+    last_time_raw.and_then(|s| format_login_time(&s))
+}
+
+fn format_login_time(datetime_str: &str) -> Option<String> {
+    // Expect string like "2025-07-28 11:29:00"
+    let dt = NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S").ok()?;
+
+    // Format seperti: "Mon Jul 28 11:29:00 2025"
+    let formatted = dt.format("%a %b %d %H:%M:%S %Y").to_string();
+
+    Some(formatted)
 }
 
 fn parse_log_line(line: &str) -> Option<SessionEntry> {
