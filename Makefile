@@ -4,25 +4,21 @@ MAKEFLAGS += --warn-undefined-variables
 .SHELLFLAGS := -eu -o pipefail -c
 
 KERNEL_OUTPUT := build/vmlinuz
-KERNEL_DIR := kernel
+KERNEL_DIR := ../kernel
 TARGET := build/VanOS.iso
 ROOTFS := build/rootfs
 ISO := iso
 INITRAMFS := build/initramfs.cpio.gz
 MUSL_TARGET := x86_64-unknown-linux-musl
-USERLAND := vantara
-GUI_USERLAND := vantara/src/gui
+USERLAND := .
 MOUNT_DIR := build/mnt
 IMAGE_FILE := build/vantara.ext4
 IMAGE_SIZE := 4096
 CHECKSUM_DIR := build/.checksums
-OUT_DIR = ../$(ROOTFS)/bin
-INIT_OUT_DIR = ../$(ROOTFS)/sbin
-GUI_OUT_DIR = ../$(ROOTFS)/usr/bin
+OUT_DIR = $(ROOTFS)/bin
+INIT_OUT_DIR = $(ROOTFS)/sbin
 BUILD_TARGET = $(MUSL_TARGET)/release
-GUI_BUILD_TARGET = release
-GUI_BIN = vantara/target/release/vantara-gui
-COMMANDS_DIR := vantara/src/commands
+COMMANDS_DIR := src/commands
 PROJECTS := $(notdir $(wildcard $(COMMANDS_DIR)/*))
 TZSRC := tzdata2025b
 OUT_DIR_TZ := build/zoneinfo
@@ -40,9 +36,9 @@ clean:
 
 copy-kernel:
 	@echo "[Copy] Kernel to $(KERNEL_OUTPUT)..."
-	cp $(KERNEL_DIR)/arch/x86/boot/bzImage $(KERNEL_OUTPUT)
+	cp $(DE_DIR)/target/x86/boot/bzImage $(KERNEL_OUTPUT)
 
-build-rootfs: $(PROJECTS) init gui
+build-rootfs: $(PROJECTS) init
 	@echo "[Copy] Installing to $(ROOTFS)..."
 
 	@echo "[Copy] Binary to $(ROOTFS)/bin..."
@@ -105,8 +101,6 @@ build-ext4-image: $(KERNEL_OUTPUT)
 		sudo touch $(MOUNT_DIR)/etc/.firstboot; \
 	fi
 
-	ldd $(GUI_BIN) | awk '{print $$3}' | grep '^/' | xargs -I{} sudo cp -v {} $(MOUNT_DIR)/lib/
-
 	sync
 	sudo umount $(MOUNT_DIR)
 	@rm -f .image_boot_flag
@@ -131,8 +125,8 @@ build-iso:
 
 run-qemu:
 	qemu-system-x86_64 \
-		-kernel $(KERNEL) \
-		-initrd $(INITRAMFS) \
+		-kernel $(KERNEL_OUTPUT) \
+		-hda $(IMAGE_FILE) \
 		-device virtio-gpu \
 		-append "console=ttyS0 clocksource=tsc" \
 		-nographic
@@ -141,14 +135,15 @@ run-image:
 	qemu-system-x86_64 \
 		-kernel $(KERNEL_OUTPUT) \
 		-hda $(IMAGE_FILE) \
-		-device virtio-rng-pci \
-		-append "root=/dev/sda rw console=ttyS0 loglevel=3 clocksource=tsc" \
-		-enable-kvm \
-		-cpu host \
-		-smp 2 \
+		-display gtk,gl=on \
+		-device virtio-gpu \
+		-vga none \
 		-m 2048 \
-		-nographic \
-  		-serial mon:stdio
+		-smp 2 \
+		-cpu host \
+		-enable-kvm \
+		-serial mon:stdio \
+		-append "root=/dev/sda rw console=ttyS0 loglevel=3"
 
 clean-checksum:
 	rm -rf $(CHECKSUM_DIR)
@@ -170,15 +165,6 @@ init:
 	cp target/$(BUILD_TARGET)/init $(INIT_OUT_DIR)/
 	chmod u+s $(INIT_OUT_DIR)/init
 	@echo "[✓] init built and copied to $(INIT_OUT_DIR)/"
-
-gui:
-	@echo "[*] Building vantara-gui..."
-	cd $(USERLAND)
-	cargo build --release -p vantara-gui
-	mkdir -p $(GUI_OUT_DIR)
-	cp target/$(GUI_BUILD_TARGET)/vantara-gui $(GUI_OUT_DIR)/
-	chmod u+s $(GUI_OUT_DIR)/vantara-gui
-	@echo "[✓] vantara-gui built and copied to $(GUI_OUT_DIR)/"
 
 timezone:
 	@echo "[TZ] Building timezone info..."

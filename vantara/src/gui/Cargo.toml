@@ -1,9 +1,0 @@
-[package]
-name = "vantara-gui"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-smithay = { version = "0.7.0", features = ["backend_drm", "backend_udev", "wayland_frontend"] }
-log = "0.4"
-env_logger = "0.11"

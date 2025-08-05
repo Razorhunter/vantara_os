@@ -7,6 +7,8 @@ use chrono::{DateTime, Local};
 use std::process::{exit};
 use users::{get_user_by_uid, get_group_by_gid};
 use vantara::{package_name, safe_println, safe_eprintln, safe_print, print_version, get_system_timezone};
+use libc;
+use std::os::unix::fs::MetadataExt;
 
 struct Options {
     show_hidden: bool,
@@ -152,6 +154,18 @@ fn print_metadata(entry: &DirEntry, meta: &Metadata, long_format: bool) {
     let tz = get_system_timezone();
     let file_name = entry.file_name().to_string_lossy().to_string();
     let permissions = meta.permissions().mode();
+    let mode = meta.mode();
+
+    let symbol = match mode & libc::S_IFMT {
+        libc::S_IFDIR => 'd',
+        libc::S_IFREG => '-',
+        libc::S_IFLNK => 'l',
+        libc::S_IFCHR => 'c',
+        libc::S_IFBLK => 'b',
+        libc::S_IFSOCK => 's',
+        libc::S_IFIFO => 'p',
+        _ => '?',
+    };
 
     let (fg, _bg) = get_fg_bg_color(&entry, &meta);
 
@@ -163,7 +177,7 @@ fn print_metadata(entry: &DirEntry, meta: &Metadata, long_format: bool) {
 
         let perms_str = format!(
             "{}[{}{}{}{}{}{}{}{}{}]",
-            if meta.is_dir() { "d" } else { "f" },
+            symbol,
             if (permissions & 0o400) != 0 { "r" } else { "-" },
             if (permissions & 0o200) != 0 { "w" } else { "-" },
             if (permissions & 0o100) != 0 { "x" } else { "-" },

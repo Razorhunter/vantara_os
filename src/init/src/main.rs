@@ -1,13 +1,12 @@
 use std::fs::{create_dir_all, File};
-use std::io::{Write, stdout};
 use std::sync::Arc;
 use std::ffi::CString;
 use std::ptr;
 use std::process::Command;
 use libc;
-
 use vantara::{safe_println, safe_eprintln, show_boot_banner};
 use vantara::systemd::manager::ServiceManager;
+use vantara::common::clear_screen;
 
 fn main() {
     clear_screen();
@@ -20,17 +19,15 @@ fn main() {
     load_enable_services();
     clear_screen();
     show_boot_banner();
-    spawn_login();
+
+    if let Err(_e) = spawn_gui() {
+        spawn_cli();
+    }
 
     loop {
         ServiceManager::reap_children(); // collect all zombie process
         std::thread::sleep(std::time::Duration::from_millis(500));
     }
-}
-
-fn clear_screen() {
-    safe_println(format_args!("\x1B[2J\x1B[1;1H"));
-    let _ = stdout().flush();
 }
 
 fn create_directories_and_dev_nodes() {
@@ -93,7 +90,7 @@ fn load_enable_services() {
     }
 }
 
-fn spawn_login() {
+fn spawn_cli() {
     let path = CString::new("/bin/login").unwrap();
     let arg0 = CString::new("login").unwrap();
     let args = vec![arg0.as_ptr(), ptr::null()];
@@ -113,8 +110,13 @@ fn spawn_login() {
     }
 }
 
-fn spawn_gui() {
-    Command::new("/usr/bin/vantara-gui")
+fn spawn_gui() -> Result<(), String> {
+    match Command::new("/usr/bin/vantara_de")
         .spawn()
-        .expect("failed to exec vantara-gui");
+        .and_then(|mut child| child.wait())
+    {
+        Ok(status) if status.success() => Ok(()),
+        Ok(status) => Err(format!("Keluar dengan kod: {}", status.code().unwrap_or(-1))),
+        Err(e) => Err(format!("Gagal spawn DE: {e}")),
+    }
 }
