@@ -136,14 +136,15 @@ run-image:
 		-kernel $(KERNEL_OUTPUT) \
 		-hda $(IMAGE_FILE) \
 		-display gtk,gl=on \
+		-vga std \
+		-display sdl \
 		-device virtio-gpu \
-		-vga none \
 		-m 2048 \
 		-smp 2 \
 		-cpu host \
 		-enable-kvm \
 		-serial mon:stdio \
-		-append "root=/dev/sda rw console=ttyS0 loglevel=3"
+		-append "root=/dev/sda rw console=tty0 vt.global_cursor_default=0 loglevel=3"
 
 clean-checksum:
 	rm -rf $(CHECKSUM_DIR)
